@@ -1,12 +1,13 @@
 'use client';
 
-import { Eye, EyeOff, Lock, Phone } from 'lucide-react';
+import { AlertCircle, Eye, EyeOff, Lock, Phone } from 'lucide-react';
 import MadrashaLogo from '~/public/images/habrul ummah model madrasa logo.svg';
 
 import type React from 'react';
 import { useState } from 'react';
 
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,20 +15,33 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 export function LoginForm() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [password, setPassword] = useState('');
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [error, setError] = useState('');
+  const [password, setPassword] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
+    setError('');
+    setIsLoading(true);
+
+    if (phoneNumber === '+880 1843 676171' && password === '123') {
+      document.cookie = `auth=true`;
+      router.push('/dashboard');
+    } else {
+      setError('Invalid phone number or password. Please try again.');
+    }
+
+    setIsLoading(false);
   };
 
   return (
-    <Card className="bg-card mx-auto w-full max-w-md border-0 shadow-lg">
-      <CardHeader className="space-y-1 pb-8 text-center">
-        <div className="mb-2 flex justify-center">
-          {/* Company Logo Placeholder */}
+    <Card className="w-full max-w-md mx-auto shadow-lg border-0 bg-card">
+      <CardHeader className="space-y-1 text-center pb-8">
+        <div className="flex justify-center mb-6">
           <Image
             src={MadrashaLogo}
             alt="Madrasha Logo"
@@ -37,57 +51,67 @@ export function LoginForm() {
             priority
           />
         </div>
-        <CardTitle className="text-foreground text-2xl font-bold">Login</CardTitle>
+        <CardTitle className="text-2xl font-bold text-foreground">Login</CardTitle>
         <CardDescription className="text-muted-foreground">
           Enter your credentials to access your account
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleLogin} className="space-y-6">
+          {error && (
+            <div className="flex items-center gap-2 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
+              <AlertCircle className="h-4 w-4 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
           <div className="space-y-2">
-            <Label htmlFor="phone" className="text-foreground text-sm font-semibold">
+            <Label htmlFor="phone" className="text-sm font-semibold text-foreground">
               Phone Number
             </Label>
             <div className="relative">
-              <Phone className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
+              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 id="phone"
                 type="tel"
                 placeholder="Enter your phone number"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
-                className="bg-input border-border focus:ring-ring h-12 pl-10 focus:border-transparent focus:ring-2"
+                className="pl-10 h-12 bg-input border-border focus:ring-2 focus:ring-ring focus:border-transparent"
                 required
+                disabled={isLoading}
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-foreground text-sm font-semibold">
+            <Label htmlFor="password" className="text-sm font-semibold text-foreground">
               Password
             </Label>
             <div className="relative">
-              <Lock className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="bg-input border-border focus:ring-ring h-12 pr-10 pl-10 focus:border-transparent focus:ring-2"
+                className="pl-10 pr-10 h-12 bg-input border-border focus:ring-2 focus:ring-ring focus:border-transparent"
                 required
+                disabled={isLoading}
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                 onClick={() => setShowPassword(!showPassword)}
+                disabled={isLoading}
               >
                 {showPassword ? (
-                  <EyeOff className="text-muted-foreground h-4 w-4" />
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
                 ) : (
-                  <Eye className="text-muted-foreground h-4 w-4" />
+                  <Eye className="h-4 w-4 text-muted-foreground" />
                 )}
                 <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
               </Button>
@@ -96,9 +120,10 @@ export function LoginForm() {
 
           <Button
             type="submit"
-            className="bg-primary hover:bg-primary/90 text-primary-foreground h-12 w-full cursor-pointer text-base font-semibold transition-colors dark:text-white"
+            className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base transition-colors dark:text-white"
+            disabled={isLoading}
           >
-            Login
+            {isLoading ? 'Logging in...' : 'Login'}
           </Button>
 
           <div className="text-center">
@@ -106,6 +131,7 @@ export function LoginForm() {
               type="button"
               variant="link"
               className="text-primary hover:text-primary/80 text-sm"
+              disabled={isLoading}
             >
               Forgot your password?
             </Button>
