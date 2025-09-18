@@ -1,7 +1,13 @@
 import React from 'react';
 
+import { ThemeToggle } from './_components/ThemeToggle';
+
 function DashboardPage() {
-  return <div>DashboardPage</div>;
+  return (
+    <div>
+      <ThemeToggle />
+    </div>
+  );
 }
 
 export default DashboardPage;
