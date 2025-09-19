@@ -58,11 +58,6 @@ const data = {
       url: '/income',
       icon: Users,
     },
-    {
-      title: 'Expense',
-      url: '/expense',
-      icon: Users,
-    },
   ],
 };
 
