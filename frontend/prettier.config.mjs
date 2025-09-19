@@ -12,10 +12,7 @@ const config = {
   endOfLine: 'auto',
   jsxSingleQuote: false,
   tailwindFunctions: ['cva'],
-  plugins: [
-    'prettier-plugin-tailwindcss',
-    '@trivago/prettier-plugin-sort-imports',
-  ],
+  plugins: ['prettier-plugin-tailwindcss', '@trivago/prettier-plugin-sort-imports'],
   importOrder: ['^react$', '^next/(.*)$', '^@/components/(.*)$', '^[./]'],
   importOrderSeparation: true,
   importOrderSortSpecifiers: true,

@@ -1,12 +1,10 @@
+import '@/style/index.css';
 import type { Metadata } from 'next';
 import { ThemeProvider } from 'next-themes';
 
 import type React from 'react';
-import { Suspense } from 'react';
 
 import { Geist, Geist_Mono } from 'next/font/google';
-
-import './globals.css';
 
 const geistSans = Geist({
   subsets: ['latin'],
@@ -35,9 +33,16 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable}`}
     >
       <body className="font-sans antialiased">
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          {children}
-        </ThemeProvider>
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+          </ThemeProvider>
+        </div>
       </body>
     </html>
   );
