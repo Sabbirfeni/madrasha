@@ -53,6 +53,16 @@ const data = {
       url: '/donations',
       icon: Users,
     },
+    {
+      title: 'Income',
+      url: '/income',
+      icon: Users,
+    },
+    {
+      title: 'Expense',
+      url: '/expense',
+      icon: Users,
+    },
   ],
 };
 
