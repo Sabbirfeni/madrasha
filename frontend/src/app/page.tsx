@@ -23,7 +23,7 @@ export default function Home() {
         Habrul Ummah Model Madrasa
       </h1>
 
-      <Link href="/dashboard">
+      <Link href="/dashboard/overview">
         <Button
           size="lg"
           className="cursor-pointer text-primary-foreground font-semibold px-8 py-3 dark:text-white"

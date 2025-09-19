@@ -35,22 +35,22 @@ const data = {
     },
     {
       title: 'Admins',
-      url: '#',
+      url: '/admins',
       icon: List,
     },
     {
       title: 'Students',
-      url: '#',
+      url: '/students',
       icon: BarChart3,
     },
     {
       title: 'Employees',
-      url: '#',
+      url: '/employess',
       icon: Folder,
     },
     {
       title: 'Donations',
-      url: '#',
+      url: '/donations',
       icon: Users,
     },
   ],
