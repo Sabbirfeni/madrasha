@@ -2,6 +2,8 @@
 
 import { LucideIcon } from 'lucide-react';
 
+import Link from 'next/link';
+
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -23,9 +25,11 @@ const NavMain = ({ items }: { items: NavItem[] }) => {
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title} className="cursor-pointer">
-                {item.icon && <item.icon className="size-4" />}
-                <span>{item.title}</span>
+              <SidebarMenuButton asChild tooltip={item.title} className="cursor-pointer">
+                <Link href={item.url}>
+                  {item.icon && <item.icon className="size-4" />}
+                  <span>{item.title}</span>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
