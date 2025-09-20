@@ -68,6 +68,11 @@ const data = {
       url: '/dashboard/hostels',
       icon: Users,
     },
+    {
+      title: 'Hostels',
+      url: '/expense',
+      icon: Users,
+    },
   ],
 };
 
