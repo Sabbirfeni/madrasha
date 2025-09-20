@@ -35,32 +35,37 @@ const data = {
     },
     {
       title: 'Admins',
-      url: '/admins',
+      url: '/dashboard/admins',
       icon: List,
     },
     {
       title: 'Students',
-      url: '/students',
+      url: '/dashboard/students',
       icon: BarChart3,
     },
     {
       title: 'Employees',
-      url: '/employess',
+      url: '/dashboard/employess',
       icon: Folder,
     },
     {
       title: 'Donations',
-      url: '/donations',
+      url: '/dashboard/donations',
       icon: Users,
     },
     {
       title: 'Income',
-      url: '/income',
+      url: '/dashboard/income',
       icon: Users,
     },
     {
       title: 'Expense',
-      url: '/expense',
+      url: '/dashboard/expense',
+      icon: Users,
+    },
+    {
+      title: 'Hostels',
+      url: '/dashboard/hostels',
       icon: Users,
     },
     {

@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'হাবরুল উম্মাহ মডেল মাদ্রাসা',
-  description: 'ইলমে দ্বীন শিক্ষার নির্ভরযোগ্য প্রতিষ্ঠান',
+  title: 'Habrul Ummah',
+  description: 'A trusted institution for Islamic (religious) education.',
 };
 
 export default function RootLayout({
