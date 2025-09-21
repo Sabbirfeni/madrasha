@@ -1,6 +1,6 @@
 'use client';
 
-import { Bell, CreditCard, LogOut, MoreVertical, User } from 'lucide-react';
+import { LogOut, MoreVertical, User } from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -37,7 +37,7 @@ export function NavUser({
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="bg-sidebar-accent text-sidebar-accent-foreground"
+              className="bg-sidebar-accent text-sidebar-accent-foreground cursor-pointer"
             >
               <Avatar className="h-8 w-8 rounded-lg grayscale">
                 <AvatarImage src={user.avatar} alt={user.name} />
@@ -73,14 +73,6 @@ export function NavUser({
               <DropdownMenuItem>
                 <User className="mr-2 h-4 w-4" />
                 Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard className="mr-2 h-4 w-4" />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell className="mr-2 h-4 w-4" />
-                Notifications
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
