@@ -23,7 +23,7 @@ import { NavUser } from './NavUser';
 
 const data = {
   user: {
-    name: 'Admin',
+    name: 'Admin Name',
     phone: '+880 1843 676171',
     avatar: '/avatars/shadcn.jpg',
   },
