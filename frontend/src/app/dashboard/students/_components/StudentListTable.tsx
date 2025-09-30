@@ -13,6 +13,8 @@ import { ArrowUpDown, Plus } from 'lucide-react';
 
 import * as React from 'react';
 
+import Link from 'next/link';
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -413,11 +415,14 @@ export const studentListTableColumns: ColumnDef<Student>[] = [
     id: 'actions',
     enableHiding: false,
     header: 'Action',
-    cell: () => {
+    cell: ({ row }) => {
+      const student = row.original;
       return (
-        <Button variant="link" className="h-auto p-0 text-xs text-primary underline">
-          Details
-        </Button>
+        <Link href={`/dashboard/students/${student.id}`}>
+          <Button variant="link" className="h-auto p-0 text-sm text-primary underline">
+            Details
+          </Button>
+        </Link>
       );
     },
   },
