@@ -133,6 +133,11 @@ export function AdminListTable<TData, TValue>({
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    initialState: {
+      pagination: {
+        pageSize: 15,
+      },
+    },
     state: {
       sorting,
       columnFilters,

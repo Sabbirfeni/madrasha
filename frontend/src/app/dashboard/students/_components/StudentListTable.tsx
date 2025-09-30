@@ -120,6 +120,11 @@ export function StudentListTable<TData, TValue>({
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    initialState: {
+      pagination: {
+        pageSize: 15,
+      },
+    },
     state: {
       sorting,
       columnFilters,
