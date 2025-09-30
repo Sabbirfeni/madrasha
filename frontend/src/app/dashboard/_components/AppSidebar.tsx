@@ -1,6 +1,14 @@
 'use client';
 
-import { BarChart3, Folder, LayoutDashboard, List, Users } from 'lucide-react';
+import {
+  BanknoteArrowDown,
+  CircleDollarSign,
+  HandCoins,
+  LayoutDashboard,
+  SquareUser,
+  UserRoundCog,
+  Users,
+} from 'lucide-react';
 import MadrasaLogo from '~/public/images/habrul ummah model madrasa logo.svg';
 
 import * as React from 'react';
@@ -36,42 +44,32 @@ const data = {
     {
       title: 'Admins',
       url: '/dashboard/admins',
-      icon: List,
+      icon: UserRoundCog,
     },
     {
       title: 'Students',
       url: '/dashboard/students',
-      icon: BarChart3,
+      icon: SquareUser,
     },
     {
       title: 'Employees',
       url: '/dashboard/employess',
-      icon: Folder,
+      icon: Users,
     },
     {
       title: 'Donations',
       url: '/dashboard/donations',
-      icon: Users,
+      icon: HandCoins,
     },
     {
       title: 'Income',
       url: '/dashboard/income',
-      icon: Users,
+      icon: CircleDollarSign,
     },
     {
       title: 'Expense',
       url: '/dashboard/expense',
-      icon: Users,
-    },
-    {
-      title: 'Hostels',
-      url: '/dashboard/hostels',
-      icon: Users,
-    },
-    {
-      title: 'Hostels',
-      url: '/expense',
-      icon: Users,
+      icon: BanknoteArrowDown,
     },
   ],
 };
