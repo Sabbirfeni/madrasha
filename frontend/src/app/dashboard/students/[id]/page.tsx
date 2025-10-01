@@ -52,6 +52,17 @@ type StudentDetailsFormData = {
   guardian_permanent_location: string;
 };
 
+type ResidentialCategory = {
+  name: string;
+  fee: number;
+};
+
+const residentialCategories: ResidentialCategory[] = [
+  { name: 'Normal', fee: 3000 },
+  { name: 'Medium', fee: 5000 },
+  { name: 'VIP', fee: 8000 },
+];
+
 // Mock data
 const mockStudentData: StudentDetailsFormData = {
   branch: 'Boys',
@@ -119,6 +130,14 @@ export default function StudentDetailsPage() {
   };
 
   const handleSave = handleSubmit(onSubmit);
+
+  const handleResidentialCategoryChange = (categoryName: string) => {
+    setValue('residential_category', categoryName);
+    const selectedCategory = residentialCategories.find((cat) => cat.name === categoryName);
+    if (selectedCategory) {
+      setValue('residential_fee', selectedCategory.fee);
+    }
+  };
 
   // Calculate total fee
   const totalFee =
@@ -455,15 +474,17 @@ export default function StudentDetailsPage() {
               {isEditing ? (
                 <Select
                   value={watchedValues.residential_category}
-                  onValueChange={(value) => setValue('residential_category', value)}
+                  onValueChange={handleResidentialCategoryChange}
                 >
                   <SelectTrigger className="bg-muted/40 dark:bg-input/40">
                     <SelectValue placeholder="Select residential category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Normal">Normal</SelectItem>
-                    <SelectItem value="Medium">Medium</SelectItem>
-                    <SelectItem value="VIP">VIP</SelectItem>
+                    {residentialCategories.map((category) => (
+                      <SelectItem key={category.name} value={category.name}>
+                        {category.name} (৳{category.fee.toLocaleString()})
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               ) : (
