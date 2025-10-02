@@ -1,9 +1,9 @@
 'use client';
 
-import { Edit2, Save, X } from 'lucide-react';
+import { Camera, Edit2, Save, X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -97,6 +97,9 @@ const mockStudentData: StudentDetailsFormData = {
 export default function StudentDetailsPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
@@ -113,7 +116,7 @@ export default function StudentDetailsPage() {
 
   const onSubmit = async (data: StudentDetailsFormData) => {
     setIsSaving(true);
-    // Simulate API call
+
     await new Promise((resolve) => setTimeout(resolve, 1000));
     console.log('Student data saved:', data);
     setIsSaving(false);
@@ -122,11 +125,6 @@ export default function StudentDetailsPage() {
 
   const handleEdit = () => {
     setIsEditing(true);
-  };
-
-  const handleCancel = () => {
-    reset();
-    setIsEditing(false);
   };
 
   const handleSave = handleSubmit(onSubmit);
@@ -139,6 +137,31 @@ export default function StudentDetailsPage() {
     }
   };
 
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setImagePreview(result);
+        setValue('profile_image', result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAvatarClick = () => {
+    if (isEditing) {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handleCancel = () => {
+    reset();
+    setImagePreview(null);
+    setIsEditing(false);
+  };
+
   // Calculate total fee
   const totalFee =
     (watchedValues.class_fee || 0) +
@@ -148,18 +171,38 @@ export default function StudentDetailsPage() {
   return (
     <div className="container mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-end justify-between">
         <div className="flex items-center gap-4">
-          <Avatar className="h-30 w-30">
-            <AvatarImage src={watchedValues.profile_image} alt={watchedValues.full_name} />
-            <AvatarFallback className="text-md">
-              {watchedValues.full_name
-                ?.split(' ')
-                .map((n) => n[0])
-                .join('')
-                .toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          <div className="relative group">
+            <Avatar className="h-30 w-30 cursor-pointer" onClick={handleAvatarClick}>
+              <AvatarImage
+                src={imagePreview || watchedValues.profile_image}
+                alt={watchedValues.full_name}
+              />
+              <AvatarFallback className="text-md">
+                {watchedValues.full_name
+                  ?.split(' ')
+                  .map((n) => n[0])
+                  .join('')
+                  .toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            {isEditing && (
+              <div
+                className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                onClick={handleAvatarClick}
+              >
+                <Camera className="h-8 w-8 text-white" />
+              </div>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+          </div>
           <div>
             <h1 className="text-3xl font-bold">{watchedValues.full_name}</h1>
             <p className="text-muted-foreground">
