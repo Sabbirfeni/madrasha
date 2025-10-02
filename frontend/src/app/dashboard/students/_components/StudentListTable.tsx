@@ -278,9 +278,11 @@ export function StudentListTable<TData, TValue>({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Button className="h-9 px-3">
-            <Plus className="h-4 w-4" />
-            Add Student
+          <Button className="h-9 px-3" asChild>
+            <Link href="/dashboard/add-student">
+              <Plus className="h-4 w-4" />
+              Add Student
+            </Link>
           </Button>
         </div>
       </div>

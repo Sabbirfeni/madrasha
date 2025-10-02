@@ -221,8 +221,8 @@ export default function StudentDetailsPage() {
                 Cancel
               </Button>
               <Button onClick={handleSave} disabled={isSaving}>
-                <Save className="h-4 w-4 mr-2" />
-                {isSaving ? 'Saving...' : 'Save Changes'}
+                <Save className="h-4 w-4" />
+                {isSaving ? 'Saving Student...' : 'Save Changes'}
               </Button>
             </>
           ) : (
@@ -398,11 +398,20 @@ export default function StudentDetailsPage() {
                 Group
               </Label>
               {isEditing ? (
-                <Input
-                  className="bg-muted/40 dark:bg-input/40"
-                  {...register('group_name')}
-                  placeholder="Enter group name"
-                />
+                <Select
+                  value={watchedValues.group_name}
+                  onValueChange={(value) => setValue('group_name', value)}
+                >
+                  <SelectTrigger className="bg-muted/40 dark:bg-input/40">
+                    <SelectValue placeholder="Select group" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Ibtida'iyyah">Ibtida&apos;iyyah</SelectItem>
+                    <SelectItem value="Thanawiyyah 'Ulyā">Thanawiyyah &apos;Ulyā</SelectItem>
+                    <SelectItem value="Ālimiyyah">Ālimiyyah</SelectItem>
+                    <SelectItem value="Mutawassitah">Mutawassitah</SelectItem>
+                  </SelectContent>
+                </Select>
               ) : (
                 <div className="p-2 text-sm bg-muted/40 rounded-md">{watchedValues.group_name}</div>
               )}
