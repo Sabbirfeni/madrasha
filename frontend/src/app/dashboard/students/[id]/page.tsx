@@ -35,12 +35,13 @@ type StudentDetailsFormData = {
   current_location: string;
   permanent_location: string;
   day_care: boolean;
+  residential: boolean;
   residential_category: string;
 
   // Fee Information
   class_fee: number;
   residential_fee: number;
-  weabiar_amount: number;
+  webinars_amount: number;
   total: number;
 
   // Guardian Information
@@ -79,11 +80,12 @@ const mockStudentData: StudentDetailsFormData = {
   current_location: 'Dhaka, Bangladesh',
   permanent_location: 'Chittagong, Bangladesh',
   day_care: true,
+  residential: true,
   residential_category: 'Normal',
 
   class_fee: 5000,
   residential_fee: 3000,
-  weabiar_amount: 2000,
+  webinars_amount: 2000,
   total: 10000,
 
   guardian_name: 'Abdul Rahman',
@@ -165,8 +167,8 @@ export default function StudentDetailsPage() {
   // Calculate total fee
   const totalFee =
     (watchedValues.class_fee || 0) +
-    (watchedValues.residential_fee || 0) +
-    (watchedValues.weabiar_amount || 0);
+    (watchedValues.residential ? watchedValues.residential_fee || 0 : 0) -
+    (watchedValues.webinars_amount || 0);
 
   return (
     <div className="container mx-auto space-y-6">
@@ -511,31 +513,57 @@ export default function StudentDetailsPage() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-md" htmlFor="residential_category">
-                Residential Category
+              <Label className="text-md" htmlFor="residential">
+                Residential
               </Label>
               {isEditing ? (
                 <Select
-                  value={watchedValues.residential_category}
-                  onValueChange={handleResidentialCategoryChange}
+                  value={watchedValues.residential ? 'Yes' : 'No'}
+                  onValueChange={(value) => setValue('residential', value === 'Yes')}
                 >
                   <SelectTrigger className="bg-muted/40 dark:bg-input/40">
-                    <SelectValue placeholder="Select residential category" />
+                    <SelectValue placeholder="Select residential" />
                   </SelectTrigger>
                   <SelectContent>
-                    {residentialCategories.map((category) => (
-                      <SelectItem key={category.name} value={category.name}>
-                        {category.name} (৳{category.fee.toLocaleString()})
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="Yes">Yes</SelectItem>
+                    <SelectItem value="No">No</SelectItem>
                   </SelectContent>
                 </Select>
               ) : (
                 <div className="p-2 text-sm bg-muted/40 rounded-md">
-                  {watchedValues.residential_category}
+                  {watchedValues.residential ? 'Yes' : 'No'}
                 </div>
               )}
             </div>
+
+            {watchedValues.residential && (
+              <div className="space-y-2">
+                <Label className="text-md" htmlFor="residential_category">
+                  Residential Category
+                </Label>
+                {isEditing ? (
+                  <Select
+                    value={watchedValues.residential_category}
+                    onValueChange={handleResidentialCategoryChange}
+                  >
+                    <SelectTrigger className="bg-muted/40 dark:bg-input/40">
+                      <SelectValue placeholder="Select residential category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {residentialCategories.map((category) => (
+                        <SelectItem key={category.name} value={category.name}>
+                          {category.name} (৳{category.fee.toLocaleString()})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="p-2 text-sm bg-muted/40 rounded-md">
+                    {watchedValues.residential_category}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -566,38 +594,40 @@ export default function StudentDetailsPage() {
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-md" htmlFor="residential_fee">
-                Residential Fee
-              </Label>
-              {isEditing ? (
-                <Input
-                  className="bg-muted/40 dark:bg-input/40"
-                  type="number"
-                  {...register('residential_fee', { valueAsNumber: true })}
-                  placeholder="Enter residential fee"
-                />
-              ) : (
-                <div className="p-2 text-md bg-muted/40 rounded-md">
-                  ৳{watchedValues.residential_fee?.toLocaleString()}
-                </div>
-              )}
-            </div>
+            {watchedValues.residential && (
+              <div className="space-y-2">
+                <Label className="text-md" htmlFor="residential_fee">
+                  Residential Fee
+                </Label>
+                {isEditing ? (
+                  <Input
+                    className="bg-muted/40 dark:bg-input/40"
+                    type="number"
+                    {...register('residential_fee', { valueAsNumber: true })}
+                    placeholder="Enter residential fee"
+                  />
+                ) : (
+                  <div className="p-2 text-md bg-muted/40 rounded-md">
+                    ৳{watchedValues.residential_fee?.toLocaleString()}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="space-y-2">
-              <Label className="text-md" htmlFor="weabiar_amount">
-                Weabiar Amount
+              <Label className="text-md" htmlFor="webinars_amount">
+                Webinars Amount
               </Label>
               {isEditing ? (
                 <Input
                   className="bg-muted/40 dark:bg-input/40"
                   type="number"
-                  {...register('weabiar_amount', { valueAsNumber: true })}
-                  placeholder="Enter weabiar amount"
+                  {...register('webinars_amount', { valueAsNumber: true })}
+                  placeholder="Enter webinars amount"
                 />
               ) : (
                 <div className="p-2 text-md bg-muted/40 rounded-md">
-                  ৳{watchedValues.weabiar_amount?.toLocaleString()}
+                  ৳{watchedValues.webinars_amount?.toLocaleString()}
                 </div>
               )}
             </div>
