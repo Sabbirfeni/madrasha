@@ -44,7 +44,7 @@ const studentFormSchema = z
     // Fee Information
     class_fee: z.coerce.number(),
     residential_fee: z.coerce.number().min(1),
-    webinars_amount: z.coerce.number().min(0, 'Webinars amount must be positive'),
+    waiver_amount: z.coerce.number().min(0, 'Waiver amount must be positive'),
     total: z.coerce.number(),
 
     // Guardian Information
@@ -137,7 +137,7 @@ export default function AddStudentPage() {
       residential_category: '',
       class_fee: 0,
       residential_fee: 0,
-      webinars_amount: 0,
+      waiver_amount: 0,
       total: 0,
       guardian_name: '',
       guardian_relation: '',
@@ -197,8 +197,8 @@ export default function AddStudentPage() {
   // Calculate total fee
   const totalFee =
     (Number(watchedValues.class_fee) || 0) +
-    (watchedValues.residential ? Number(watchedValues.residential_fee) || 0 : 0) +
-    (Number(watchedValues.webinars_amount) || 0);
+    (watchedValues.residential ? Number(watchedValues.residential_fee) || 0 : 0) -
+    (Number(watchedValues.waiver_amount) || 0);
 
   return (
     <div className="container mx-auto space-y-6">
@@ -611,17 +611,17 @@ export default function AddStudentPage() {
             )}
 
             <div className="space-y-2">
-              <Label className="text-md" htmlFor="webinars_amount">
-                Webinars Amount
+              <Label className="text-md" htmlFor="waiver_amount">
+                Waiver Amount
               </Label>
               <Input
                 className="bg-muted/40 dark:bg-input/40"
                 type="number"
-                {...register('webinars_amount')}
-                placeholder="Enter webinars amount"
+                {...register('waiver_amount')}
+                placeholder="Enter waiver amount"
               />
-              {hasAttemptedSubmit && errors.webinars_amount && (
-                <p className="text-sm text-destructive">{errors.webinars_amount.message}</p>
+              {hasAttemptedSubmit && errors.waiver_amount && (
+                <p className="text-sm text-destructive">{errors.waiver_amount.message}</p>
               )}
             </div>
 

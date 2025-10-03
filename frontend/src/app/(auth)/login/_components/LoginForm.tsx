@@ -30,7 +30,7 @@ export function LoginForm() {
 
     if (phoneNumber === '+880 1843 676171' && password === '123') {
       document.cookie = `auth=true`;
-      router.push('/dashboard');
+      router.push('/dashboard/overview');
     } else {
       setError('Invalid phone number or password. Please try again.');
     }
