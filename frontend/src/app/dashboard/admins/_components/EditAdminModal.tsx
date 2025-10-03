@@ -98,7 +98,7 @@ export function EditAdminModal({ open, onOpenChange, admin }: EditAdminModalProp
                     onCheckedChange={() => handlePermissionChange('is_access_boys_section')}
                   />
                   <Label htmlFor="boys-section" className="text-sm font-normal">
-                    Access Boys Section
+                    Boys Section
                   </Label>
                 </div>
 
@@ -109,7 +109,7 @@ export function EditAdminModal({ open, onOpenChange, admin }: EditAdminModalProp
                     onCheckedChange={() => handlePermissionChange('is_access_girls_section')}
                   />
                   <Label htmlFor="girls-section" className="text-sm font-normal">
-                    Access Girls Section
+                    Girls Section
                   </Label>
                 </div>
 
@@ -120,7 +120,7 @@ export function EditAdminModal({ open, onOpenChange, admin }: EditAdminModalProp
                     onCheckedChange={() => handlePermissionChange('is_access_residential_section')}
                   />
                   <Label htmlFor="residential-section" className="text-sm font-normal">
-                    Access Residential Section
+                    Residential Section
                   </Label>
                 </div>
               </div>

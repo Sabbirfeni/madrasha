@@ -143,7 +143,7 @@ export function AddAdminModal({ open, onOpenChange }: AddAdminModalProps) {
                       onCheckedChange={() => handlePermissionChange('is_access_boys_section')}
                     />
                     <Label htmlFor="boys-section" className="text-sm font-normal cursor-pointer">
-                      Access Boys Section
+                      Boys Section
                     </Label>
                   </div>
 
@@ -154,7 +154,7 @@ export function AddAdminModal({ open, onOpenChange }: AddAdminModalProps) {
                       onCheckedChange={() => handlePermissionChange('is_access_girls_section')}
                     />
                     <Label htmlFor="girls-section" className="text-sm font-normal cursor-pointer">
-                      Access Girls Section
+                      Girls Section
                     </Label>
                   </div>
 
@@ -170,7 +170,7 @@ export function AddAdminModal({ open, onOpenChange }: AddAdminModalProps) {
                       htmlFor="residential-section"
                       className="text-sm font-normal cursor-pointer"
                     >
-                      Access Residential Section
+                      Residential Section
                     </Label>
                   </div>
                 </div>
