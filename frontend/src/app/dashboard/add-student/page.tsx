@@ -150,22 +150,19 @@ export default function AddStudentPage() {
 
   const watchedValues = watch();
 
-  const onSubmit = async (data: StudentFormData) => {
+  const onSubmit = async () => {
     setIsSaving(true);
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    console.log('Student data saved:', data);
-    setIsSaving(false);
 
-    // Reset form after successful submission
     reset();
+    setIsSaving(false);
     setImagePreview(null);
     setHasAttemptedSubmit(false);
   };
 
   const handleFormSubmit = () => {
     setHasAttemptedSubmit(true);
-    // @ts-expect-error - Type mismatch in form handler
     handleSubmit(onSubmit)();
   };
 

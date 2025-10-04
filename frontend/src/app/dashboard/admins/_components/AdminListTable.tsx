@@ -3,15 +3,13 @@
 import {
   type ColumnDef,
   type ColumnFiltersState,
-  type SortingState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
-  getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { ArrowUpDown, MoreHorizontal, Plus } from 'lucide-react';
+import { MoreHorizontal, Plus } from 'lucide-react';
 
 import * as React from 'react';
 
@@ -66,7 +64,6 @@ export function AdminListTable<TData, TValue>({
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
   const [selectedAdmin, setSelectedAdmin] = React.useState<Admin | null>(null);
-  const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
   const handleEditAdmin = (admin: Admin) => {
@@ -127,11 +124,9 @@ export function AdminListTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns: updatedColumns,
-    onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     initialState: {
       pagination: {
@@ -139,7 +134,6 @@ export function AdminListTable<TData, TValue>({
       },
     },
     state: {
-      sorting,
       columnFilters,
     },
   });
@@ -298,18 +292,7 @@ export function AdminListTable<TData, TValue>({
 export const adminListTableColumns: ColumnDef<Admin>[] = [
   {
     accessorKey: 'name',
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          className="h-auto p-0 font-medium"
-        >
-          Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: 'Name',
     cell: ({ row }) => {
       const admin = row.original;
       const initials = admin.name
@@ -331,18 +314,7 @@ export const adminListTableColumns: ColumnDef<Admin>[] = [
   },
   {
     accessorKey: 'type',
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          className="h-auto p-0 font-medium"
-        >
-          Type
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: 'Type',
     filterFn: (row, columnId, filterValue) => {
       return row.getValue(columnId) === filterValue;
     },
@@ -358,18 +330,7 @@ export const adminListTableColumns: ColumnDef<Admin>[] = [
   },
   {
     accessorKey: 'adminSince',
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          className="h-auto p-0 font-medium"
-        >
-          Admin Since
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: 'Admin Since',
     cell: ({ row }) => <div className="text-sm">{row.getValue('adminSince')}</div>,
   },
   {

@@ -32,84 +32,53 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-export type Student = {
+export type Employee = {
   id: string;
-  student_image?: string;
   name: string;
+  employee_image?: string;
+  employment_type: 'Teachers' | 'Management' | 'Residential Staff' | 'Technical';
   branch: 'Boys' | 'Girls';
-  is_residential: boolean;
-  section: 'Nurani' | 'Kitab' | 'Najera';
-  class:
-    | 'Shishu'
-    | 'One'
-    | 'Two'
-    | 'Three'
-    | 'Four'
-    | 'Five'
-    | 'Six'
-    | 'Seven'
-    | 'Eight'
-    | 'Nine'
-    | 'Ten';
-  enrollment_years: number[];
-  guardian: {
-    name: string;
-    phone: string;
-  };
+  join_date: string;
+  phone: string;
 };
 
-interface StudentListTableProps<TData, TValue> {
+interface EmployeeListTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   title?: string;
   description?: string;
 }
 
-export function StudentListTable<TData, TValue>({
+export function EmployeeListTable<TData, TValue>({
   columns,
   data,
-  title = 'Students',
-}: StudentListTableProps<TData, TValue>) {
+  title = 'Employees',
+}: EmployeeListTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
   const [nameSearch, setNameSearch] = React.useState<string>('');
   const [branchFilter, setBranchFilter] = React.useState<string>('');
-  const [sectionFilter, setSectionFilter] = React.useState<string>('');
-  const [classFilter, setClassFilter] = React.useState<string>('');
-  const [yearFilter, setYearFilter] = React.useState<string>('');
+  const [employmentTypeFilter, setEmploymentTypeFilter] = React.useState<string>('');
 
   const filteredData = React.useMemo(() => {
-    let filtered = data as Student[];
+    let filtered = data as Employee[];
 
     if (nameSearch) {
-      filtered = filtered.filter((student) =>
-        student.name.toLowerCase().includes(nameSearch.toLowerCase()),
+      filtered = filtered.filter((employee) =>
+        employee.name.toLowerCase().includes(nameSearch.toLowerCase()),
       );
     }
 
     if (branchFilter) {
-      if (branchFilter === 'Hostel') {
-        filtered = filtered.filter(
-          (student) => student.branch === 'Boys' && student.is_residential === true,
-        );
-      } else {
-        filtered = filtered.filter((student) => student.branch === branchFilter);
-      }
+      filtered = filtered.filter((employee) => employee.branch === branchFilter);
     }
-    if (sectionFilter) {
-      filtered = filtered.filter((student) => student.section === sectionFilter);
-    }
-    if (classFilter) {
-      filtered = filtered.filter((student) => student.class === classFilter);
-    }
-    if (yearFilter) {
-      filtered = filtered.filter((student) =>
-        student.enrollment_years.includes(Number.parseInt(yearFilter)),
-      );
+
+    if (employmentTypeFilter) {
+      filtered = filtered.filter((employee) => employee.employment_type === employmentTypeFilter);
     }
 
     return filtered as TData[];
-  }, [data, nameSearch, branchFilter, sectionFilter, classFilter, yearFilter]);
+  }, [data, nameSearch, branchFilter, employmentTypeFilter]);
 
   const table = useReactTable({
     data: filteredData,
@@ -137,7 +106,7 @@ export function StudentListTable<TData, TValue>({
         <div className="flex items-center gap-2">
           <div className="relative">
             <Input
-              placeholder="Search students..."
+              placeholder="Search employees..."
               value={nameSearch}
               onChange={(event) => setNameSearch(event.target.value)}
               className="h-9 w-64"
@@ -147,7 +116,7 @@ export function StudentListTable<TData, TValue>({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="h-9 px-3 bg-transparent">
-                {branchFilter || 'Branches'}
+                {branchFilter || 'Branch'}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -169,115 +138,63 @@ export function StudentListTable<TData, TValue>({
               >
                 Girls
               </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={branchFilter === 'Hostel'}
-                onCheckedChange={() => setBranchFilter(branchFilter === 'Hostel' ? '' : 'Hostel')}
-              >
-                Hostel
-              </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="h-9 px-3 bg-transparent">
-                {sectionFilter || 'Sections'}
+                {employmentTypeFilter || 'Employment Type'}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuCheckboxItem
-                checked={!sectionFilter}
-                onCheckedChange={() => setSectionFilter('')}
+                checked={!employmentTypeFilter}
+                onCheckedChange={() => setEmploymentTypeFilter('')}
               >
-                All Sections
+                All Types
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={sectionFilter === 'Nurani'}
-                onCheckedChange={() => setSectionFilter(sectionFilter === 'Nurani' ? '' : 'Nurani')}
+                checked={employmentTypeFilter === 'Teachers'}
+                onCheckedChange={() =>
+                  setEmploymentTypeFilter(employmentTypeFilter === 'Teachers' ? '' : 'Teachers')
+                }
               >
-                Nurani
+                Teachers
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={sectionFilter === 'Kitab'}
-                onCheckedChange={() => setSectionFilter(sectionFilter === 'Kitab' ? '' : 'Kitab')}
+                checked={employmentTypeFilter === 'Management'}
+                onCheckedChange={() =>
+                  setEmploymentTypeFilter(employmentTypeFilter === 'Management' ? '' : 'Management')
+                }
               >
-                Kitab
+                Management
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={sectionFilter === 'Najera'}
-                onCheckedChange={() => setSectionFilter(sectionFilter === 'Najera' ? '' : 'Najera')}
+                checked={employmentTypeFilter === 'Residential Staff'}
+                onCheckedChange={() =>
+                  setEmploymentTypeFilter(
+                    employmentTypeFilter === 'Residential Staff' ? '' : 'Residential Staff',
+                  )
+                }
               >
-                Najera
+                Residential Staff
               </DropdownMenuCheckboxItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="h-9 px-3 bg-transparent">
-                {classFilter || 'Classes'}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
               <DropdownMenuCheckboxItem
-                checked={!classFilter}
-                onCheckedChange={() => setClassFilter('')}
+                checked={employmentTypeFilter === 'Technical'}
+                onCheckedChange={() =>
+                  setEmploymentTypeFilter(employmentTypeFilter === 'Technical' ? '' : 'Technical')
+                }
               >
-                All Classes
+                Technical
               </DropdownMenuCheckboxItem>
-              {[
-                'Shishu',
-                'One',
-                'Two',
-                'Three',
-                'Four',
-                'Five',
-                'Six',
-                'Seven',
-                'Eight',
-                'Nine',
-                'Ten',
-              ].map((cls) => (
-                <DropdownMenuCheckboxItem
-                  key={cls}
-                  checked={classFilter === cls}
-                  onCheckedChange={() => setClassFilter(classFilter === cls ? '' : cls)}
-                >
-                  {cls}
-                </DropdownMenuCheckboxItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="h-9 px-3 bg-transparent">
-                {yearFilter || 'Year'}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuCheckboxItem
-                checked={!yearFilter}
-                onCheckedChange={() => setYearFilter('')}
-              >
-                All Years
-              </DropdownMenuCheckboxItem>
-              {['2025', '2024', '2023', '2022'].map((year) => (
-                <DropdownMenuCheckboxItem
-                  key={year}
-                  checked={yearFilter === year}
-                  onCheckedChange={() => setYearFilter(yearFilter === year ? '' : year)}
-                >
-                  {year}
-                </DropdownMenuCheckboxItem>
-              ))}
             </DropdownMenuContent>
           </DropdownMenu>
 
           <Button className="h-9 px-3" asChild>
-            <Link href="/dashboard/add-student">
+            <Link href="/dashboard/add-employee">
               <Plus className="h-4 w-4" />
-              Add Student
+              Add Employee
             </Link>
           </Button>
         </div>
@@ -354,13 +271,13 @@ export function StudentListTable<TData, TValue>({
   );
 }
 
-export const studentListTableColumns: ColumnDef<Student>[] = [
+export const employeeListTableColumns: ColumnDef<Employee>[] = [
   {
     accessorKey: 'name',
     header: 'Name',
     cell: ({ row }) => {
-      const student = row.original;
-      const initials = student.name
+      const employee = row.original;
+      const initials = employee.name
         .split(' ')
         .map((n) => n[0])
         .join('')
@@ -369,48 +286,37 @@ export const studentListTableColumns: ColumnDef<Student>[] = [
       return (
         <div className="flex items-center gap-3">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={student.student_image || '/placeholder.svg'} alt={student.name} />
+            <AvatarImage src={employee.employee_image || '/placeholder.svg'} alt={employee.name} />
             <AvatarFallback className="text-xs font-medium">{initials}</AvatarFallback>
           </Avatar>
-          <div className="font-medium">{student.name}</div>
+          <div className="font-medium">{employee.name}</div>
         </div>
       );
     },
   },
   {
-    accessorKey: 'section',
-    header: 'Section',
-    cell: ({ row }) => <div className="text-sm">{row.getValue('section')}</div>,
+    accessorKey: 'employment_type',
+    header: 'Employment Type',
+    cell: ({ row }) => <div className="text-sm">{row.getValue('employment_type')}</div>,
   },
   {
-    accessorKey: 'class',
-    header: 'Class',
-    cell: ({ row }) => <div className="text-sm">{row.getValue('class')}</div>,
+    accessorKey: 'join_date',
+    header: 'Join Date',
+    cell: ({ row }) => <div className="text-sm">{row.getValue('join_date')}</div>,
   },
   {
-    accessorKey: 'guardian',
-    header: 'Guardian Name',
-    cell: ({ row }) => {
-      const guardian = row.getValue('guardian') as Student['guardian'];
-      return <div className="font-medium">{guardian.name}</div>;
-    },
-  },
-  {
-    accessorKey: 'guardian.phone',
+    accessorKey: 'phone',
     header: 'Phone',
-    cell: ({ row }) => {
-      const guardian = row.getValue('guardian') as Student['guardian'];
-      return <div className="font-mono text-sm">{guardian.phone}</div>;
-    },
+    cell: ({ row }) => <div className="font-mono text-sm">{row.getValue('phone')}</div>,
   },
   {
     id: 'actions',
     enableHiding: false,
-    header: 'Action',
+    header: '',
     cell: ({ row }) => {
-      const student = row.original;
+      const employee = row.original;
       return (
-        <Link href={`/dashboard/students/${student.id}`}>
+        <Link href={`/dashboard/employees/${employee.id}`}>
           <Button variant="link" className="h-auto p-0 text-sm text-primary underline">
             Details
           </Button>
