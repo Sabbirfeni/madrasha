@@ -53,7 +53,7 @@ const data = {
     },
     {
       title: 'Employees',
-      url: '/dashboard/employess',
+      url: '/dashboard/employees',
       icon: Users,
     },
     {
