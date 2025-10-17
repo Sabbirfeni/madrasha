@@ -1,0 +1,188 @@
+'use client';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+
+import type React from 'react';
+import { useEffect, useState } from 'react';
+
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+import type { Donation } from './DonationListTable';
+
+const donationSchema = z.object({
+  donorName: z.string().min(1, 'Donor name is required'),
+  type: z.enum(['Membership', 'Sadka', 'Jakat']),
+  date: z.string().min(1, 'Date is required'),
+  amount: z
+    .number()
+    .min(1, 'Amount must be greater than 0')
+    .refine((val) => val > 0, 'Amount cannot be 0 or empty'),
+});
+
+type DonationFormData = z.infer<typeof donationSchema>;
+
+interface EditDonationModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  donation: Donation | null;
+}
+
+export function EditDonationModal({ open, onOpenChange, donation }: EditDonationModalProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    setValue,
+    watch,
+  } = useForm<DonationFormData>({
+    resolver: zodResolver(donationSchema),
+    defaultValues: {
+      donorName: '',
+      type: undefined,
+      date: '',
+      amount: 0,
+    },
+  });
+
+  const watchedType = watch('type');
+
+  useEffect(() => {
+    if (donation) {
+      setValue('donorName', donation.donorName);
+      setValue('type', donation.type);
+      setValue('date', donation.date);
+      setValue('amount', donation.amount);
+    }
+  }, [donation, setValue]);
+
+  const onSubmit = async (data: DonationFormData) => {
+    if (!donation) return;
+
+    setIsSubmitting(true);
+    try {
+      // Here you would typically call an API to update the donation
+      console.log('Updating donation:', { id: donation.id, ...data });
+
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Close modal
+      onOpenChange(false);
+
+      // You could add a toast notification here
+      console.log('Donation updated successfully!');
+    } catch (error) {
+      console.error('Error updating donation:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleClose = () => {
+    reset();
+    onOpenChange(false);
+  };
+
+  if (!donation) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold">Edit Donation</DialogTitle>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Donor Name */}
+          <div className="space-y-2">
+            <Label htmlFor="donorName">Donor Name</Label>
+            <Input
+              id="donorName"
+              placeholder="Enter donor name"
+              {...register('donorName')}
+              className={errors.donorName ? 'border-red-500' : ''}
+            />
+            {errors.donorName && <p className="text-sm text-red-500">{errors.donorName.message}</p>}
+          </div>
+
+          {/* Donation Type */}
+          <div className="space-y-2">
+            <Label htmlFor="type">Donation Type</Label>
+            <Select
+              value={watchedType}
+              onValueChange={(value) => setValue('type', value as 'Membership' | 'Sadka' | 'Jakat')}
+            >
+              <SelectTrigger className={errors.type ? 'border-red-500' : ''}>
+                <SelectValue placeholder="Select donation type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Membership">Membership</SelectItem>
+                <SelectItem value="Sadka">Sadka</SelectItem>
+                <SelectItem value="Jakat">Jakat</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.type && <p className="text-sm text-red-500">{errors.type.message}</p>}
+          </div>
+
+          {/* Date */}
+          <div className="space-y-2">
+            <Label htmlFor="date">Date</Label>
+            <Input
+              id="date"
+              type="date"
+              {...register('date')}
+              className={errors.date ? 'border-red-500' : ''}
+            />
+            {errors.date && <p className="text-sm text-red-500">{errors.date.message}</p>}
+          </div>
+
+          {/* Amount */}
+          <div className="space-y-2">
+            <Label htmlFor="amount">Amount</Label>
+            <Input
+              id="amount"
+              type="number"
+              placeholder="Enter amount"
+              {...register('amount', { valueAsNumber: true })}
+              className={errors.amount ? 'border-red-500' : ''}
+              min="1"
+              step="0.01"
+            />
+            {errors.amount && <p className="text-sm text-red-500">{errors.amount.message}</p>}
+          </div>
+
+          {/* Submit Button */}
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              className="flex-1"
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" className="flex-1" disabled={isSubmitting}>
+              {isSubmitting ? 'Updating...' : 'Update Donation'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
