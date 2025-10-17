@@ -67,8 +67,8 @@ const data = {
       icon: CircleDollarSign,
     },
     {
-      title: 'Expense',
-      url: '/dashboard/expense',
+      title: 'Expenses',
+      url: '/dashboard/expenses',
       icon: BanknoteArrowDown,
     },
   ],
