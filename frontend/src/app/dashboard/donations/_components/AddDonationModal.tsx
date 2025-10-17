@@ -113,7 +113,6 @@ export function AddDonationModal({ open, onOpenChange }: AddDonationModalProps) 
             />
             {errors.donorName && <p className="text-sm text-red-500">{errors.donorName.message}</p>}
           </div>
-
           {/* Phone Number */}
           <div className="space-y-2">
             <Label htmlFor="phoneNumber">Phone Number</Label>
@@ -127,7 +126,6 @@ export function AddDonationModal({ open, onOpenChange }: AddDonationModalProps) 
               <p className="text-sm text-red-500">{errors.phoneNumber.message}</p>
             )}
           </div>
-
           {/* Donation Type */}
           <div className="space-y-2">
             <Label htmlFor="type">Donation Type</Label>
