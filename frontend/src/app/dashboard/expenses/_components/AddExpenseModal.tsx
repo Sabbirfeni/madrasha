@@ -5,7 +5,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -19,22 +19,21 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-import type { Income } from './IncomeListTable';
-
-const incomeSchema = z.object({
+// Zod validation schema
+const expenseSchema = z.object({
   branch: z
     .string()
     .min(1, 'Please select a branch')
-    .refine((val) => val && ['Boys', 'Girls'].includes(val), {
+    .refine((val) => val && ['Boys', 'Girls', 'Hostel'].includes(val), {
       message: 'Please select a valid branch',
     }),
   type: z
     .string()
-    .min(1, 'Please select an income type')
-    .refine((val) => val && ['Student Fee', 'Book Sell', 'Other'].includes(val), {
-      message: 'Please select a valid income type',
+    .min(1, 'Please select an expense type')
+    .refine((val) => val && ['Salary', 'Food', 'Utility'].includes(val), {
+      message: 'Please select a valid expense type',
     }),
-  note: z.string(),
+  note: z.string().min(1, 'Note is required'),
   date: z.string().min(1, 'Date is required'),
   amount: z
     .number({ message: 'Amount must be a number' })
@@ -42,15 +41,14 @@ const incomeSchema = z.object({
     .refine((val) => val > 0, 'Amount cannot be 0 or empty'),
 });
 
-type IncomeFormData = z.infer<typeof incomeSchema>;
+type ExpenseFormData = z.infer<typeof expenseSchema>;
 
-interface EditIncomeModalProps {
+interface AddExpenseModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  income: Income | null;
 }
 
-export function EditIncomeModal({ open, onOpenChange, income }: EditIncomeModalProps) {
+export function AddExpenseModal({ open, onOpenChange }: AddExpenseModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -59,47 +57,34 @@ export function EditIncomeModal({ open, onOpenChange, income }: EditIncomeModalP
     formState: { errors },
     reset,
     control,
-  } = useForm<IncomeFormData>({
-    resolver: zodResolver(incomeSchema),
+  } = useForm<ExpenseFormData>({
+    resolver: zodResolver(expenseSchema),
     defaultValues: {
       branch: '',
       type: '',
       note: '',
-      date: '',
+      date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
       amount: 0,
     },
   });
 
-  useEffect(() => {
-    if (income) {
-      reset({
-        branch: income.branch,
-        type: income.type,
-        note: income.note,
-        date: income.date,
-        amount: income.amount,
-      });
-    }
-  }, [income, reset]);
-
-  const onSubmit = async (data: IncomeFormData) => {
-    if (!income) return;
-
+  const onSubmit = async (data: ExpenseFormData) => {
     setIsSubmitting(true);
     try {
-      // Here you would typically call an API to update the income
-      console.log('Updating income:', { id: income.id, ...data });
+      // Here you would typically call an API to add the expense
+      console.log('Adding expense:', data);
 
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Close modal
+      // Reset form and close modal
+      reset();
       onOpenChange(false);
 
       // You could add a toast notification here
-      console.log('Income updated successfully!');
+      console.log('Expense added successfully!');
     } catch (error) {
-      console.error('Error updating income:', error);
+      console.error('Error adding expense:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -110,13 +95,11 @@ export function EditIncomeModal({ open, onOpenChange, income }: EditIncomeModalP
     onOpenChange(false);
   };
 
-  if (!income) return null;
-
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">Edit Income</DialogTitle>
+          <DialogTitle className="text-xl font-semibold">Add New Expense</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -136,6 +119,7 @@ export function EditIncomeModal({ open, onOpenChange, income }: EditIncomeModalP
                     <SelectContent>
                       <SelectItem value="Boys">Boys</SelectItem>
                       <SelectItem value="Girls">Girls</SelectItem>
+                      <SelectItem value="Hostel">Hostel</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
@@ -143,7 +127,7 @@ export function EditIncomeModal({ open, onOpenChange, income }: EditIncomeModalP
               {errors.branch && <p className="text-sm text-red-500">{errors.branch.message}</p>}
             </div>
 
-            {/* Income Type */}
+            {/* Expense Type */}
             <div className="space-y-2">
               <Label htmlFor="type">Type</Label>
               <Controller
@@ -152,44 +136,18 @@ export function EditIncomeModal({ open, onOpenChange, income }: EditIncomeModalP
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger className={errors.type ? 'border-red-500' : ''}>
-                      <SelectValue placeholder="Select income type" />
+                      <SelectValue placeholder="Select expense type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Student Fee">Student Fee</SelectItem>
-                      <SelectItem value="Book Sell">Book Sell</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
+                      <SelectItem value="Salary">Salary</SelectItem>
+                      <SelectItem value="Food">Food</SelectItem>
+                      <SelectItem value="Utility">Utility</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
               />
               {errors.type && <p className="text-sm text-red-500">{errors.type.message}</p>}
             </div>
-          </div>
-
-          {/* Note */}
-          <div className="space-y-2">
-            <Label htmlFor="note">Note</Label>
-            <textarea
-              id="note"
-              placeholder="Enter note or description"
-              {...register('note')}
-              className={`flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
-                errors.note ? 'border-red-500' : ''
-              }`}
-            />
-            {errors.note && <p className="text-sm text-red-500">{errors.note.message}</p>}
-          </div>
-
-          {/* Date */}
-          <div className="space-y-2">
-            <Label htmlFor="date">Date</Label>
-            <Input
-              id="date"
-              type="date"
-              {...register('date')}
-              className={errors.date ? 'border-red-500' : ''}
-            />
-            {errors.date && <p className="text-sm text-red-500">{errors.date.message}</p>}
           </div>
 
           {/* Amount */}
@@ -207,6 +165,32 @@ export function EditIncomeModal({ open, onOpenChange, income }: EditIncomeModalP
             {errors.amount && <p className="text-sm text-red-500">{errors.amount.message}</p>}
           </div>
 
+          {/* Date */}
+          <div className="space-y-2">
+            <Label htmlFor="date">Date</Label>
+            <Input
+              id="date"
+              type="date"
+              {...register('date')}
+              className={errors.date ? 'border-red-500' : ''}
+            />
+            {errors.date && <p className="text-sm text-red-500">{errors.date.message}</p>}
+          </div>
+
+          {/* Note */}
+          <div className="space-y-2">
+            <Label htmlFor="note">Note</Label>
+            <textarea
+              id="note"
+              placeholder="Enter note or description"
+              {...register('note')}
+              className={`flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                errors.note ? 'border-red-500' : ''
+              }`}
+            />
+            {errors.note && <p className="text-sm text-red-500">{errors.note.message}</p>}
+          </div>
+
           {/* Submit Button */}
           <div className="flex gap-3">
             <Button
@@ -219,7 +203,7 @@ export function EditIncomeModal({ open, onOpenChange, income }: EditIncomeModalP
               Cancel
             </Button>
             <Button type="submit" className="flex-1" disabled={isSubmitting}>
-              {isSubmitting ? 'Updating...' : 'Update Income'}
+              {isSubmitting ? 'Adding...' : 'Add Expense'}
             </Button>
           </div>
         </form>

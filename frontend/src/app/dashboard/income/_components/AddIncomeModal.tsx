@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import type React from 'react';
@@ -21,10 +21,16 @@ import {
 
 // Zod validation schema
 const incomeSchema = z.object({
+  branch: z
+    .string()
+    .min(1, 'Please select a branch')
+    .refine((val) => val && ['Boys', 'Girls'].includes(val), {
+      message: 'Please select a valid branch',
+    }),
   type: z
     .string()
     .min(1, 'Please select an income type')
-    .refine((val) => ['Student Fee', 'Book Sell', 'Other'].includes(val), {
+    .refine((val) => val && ['Student Fee', 'Book Sell', 'Other'].includes(val), {
       message: 'Please select a valid income type',
     }),
   note: z.string().min(1, 'Note is required'),
@@ -50,20 +56,17 @@ export function AddIncomeModal({ open, onOpenChange }: AddIncomeModalProps) {
     handleSubmit,
     formState: { errors },
     reset,
-    setValue,
-    watch,
-    trigger,
+    control,
   } = useForm<IncomeFormData>({
     resolver: zodResolver(incomeSchema),
     defaultValues: {
-      type: undefined,
+      branch: '',
+      type: '',
       note: '',
       date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
       amount: 0,
     },
   });
-
-  const watchedType = watch('type');
 
   const onSubmit = async (data: IncomeFormData) => {
     setIsSubmitting(true);
@@ -100,26 +103,50 @@ export function AddIncomeModal({ open, onOpenChange }: AddIncomeModalProps) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Income Type */}
-          <div className="space-y-2">
-            <Label htmlFor="type">Type</Label>
-            <Select
-              value={watchedType}
-              onValueChange={(value) => {
-                setValue('type', value as 'Student Fee' | 'Book Sell' | 'Other');
-                trigger('type'); // Trigger validation to clear error message
-              }}
-            >
-              <SelectTrigger className={errors.type ? 'border-red-500' : ''}>
-                <SelectValue placeholder="Select income type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Student Fee">Student Fee</SelectItem>
-                <SelectItem value="Book Sell">Book Sell</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.type && <p className="text-sm text-red-500">{errors.type.message}</p>}
+          {/* Branch and Type Row */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Branch */}
+            <div className="space-y-2">
+              <Label htmlFor="branch">Branch</Label>
+              <Controller
+                name="branch"
+                control={control}
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className={errors.branch ? 'border-red-500' : ''}>
+                      <SelectValue placeholder="Select branch" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Boys">Boys</SelectItem>
+                      <SelectItem value="Girls">Girls</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.branch && <p className="text-sm text-red-500">{errors.branch.message}</p>}
+            </div>
+
+            {/* Income Type */}
+            <div className="space-y-2">
+              <Label htmlFor="type">Type</Label>
+              <Controller
+                name="type"
+                control={control}
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className={errors.type ? 'border-red-500' : ''}>
+                      <SelectValue placeholder="Select income type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Student Fee">Student Fee</SelectItem>
+                      <SelectItem value="Book Sell">Book Sell</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.type && <p className="text-sm text-red-500">{errors.type.message}</p>}
+            </div>
           </div>
 
           {/* Note */}

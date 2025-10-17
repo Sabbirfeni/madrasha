@@ -30,34 +30,34 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-import { AddIncomeModal } from './AddIncomeModal';
-import { EditIncomeModal } from './EditIncomeModal';
+import { AddExpenseModal } from './AddExpenseModal';
+import { EditExpenseModal } from './EditExpenseModal';
 
-export type Income = {
+export type Expense = {
   id: string;
-  branch: 'Boys' | 'Girls';
-  type: 'Student Fee' | 'Book Sell' | 'Other';
+  branch: 'Boys' | 'Girls' | 'Hostel';
+  type: 'Salary' | 'Food' | 'Utility';
   note: string;
   addedBy: string;
   date: string;
   amount: number;
 };
 
-interface IncomeListTableProps<TData, TValue> {
+interface ExpenseListTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   title?: string;
   description?: string;
 }
 
-export function IncomeListTable<TData, TValue>({
+export function ExpenseListTable<TData, TValue>({
   columns,
   data,
-  title = 'Income',
-}: IncomeListTableProps<TData, TValue>) {
+  title = 'Expenses',
+}: ExpenseListTableProps<TData, TValue>) {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
-  const [selectedIncome, setSelectedIncome] = React.useState<Income | null>(null);
+  const [selectedExpense, setSelectedExpense] = React.useState<Expense | null>(null);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
   // Search and filter states
@@ -67,40 +67,40 @@ export function IncomeListTable<TData, TValue>({
   const [monthFilter, setMonthFilter] = React.useState<string>('');
   const [yearFilter, setYearFilter] = React.useState<string>('');
 
-  const handleEditIncome = (income: Income) => {
-    setSelectedIncome(income);
+  const handleEditExpense = (expense: Expense) => {
+    setSelectedExpense(expense);
     setIsEditModalOpen(true);
   };
 
   const filteredData = React.useMemo(() => {
-    let filtered = data as Income[];
+    let filtered = data as Expense[];
 
     if (noteSearch) {
-      filtered = filtered.filter((income) =>
-        income.note.toLowerCase().includes(noteSearch.toLowerCase()),
+      filtered = filtered.filter((expense) =>
+        expense.note.toLowerCase().includes(noteSearch.toLowerCase()),
       );
     }
 
     if (branchFilter) {
-      filtered = filtered.filter((income) => income.branch === branchFilter);
+      filtered = filtered.filter((expense) => expense.branch === branchFilter);
     }
 
     if (typeFilter) {
-      filtered = filtered.filter((income) => income.type === typeFilter);
+      filtered = filtered.filter((expense) => expense.type === typeFilter);
     }
 
     if (monthFilter) {
-      filtered = filtered.filter((income) => {
-        const incomeDate = new Date(income.date);
-        const incomeMonth = incomeDate.getMonth() + 1; // getMonth() returns 0-11
-        return incomeMonth === Number.parseInt(monthFilter);
+      filtered = filtered.filter((expense) => {
+        const expenseDate = new Date(expense.date);
+        const expenseMonth = expenseDate.getMonth() + 1; // getMonth() returns 0-11
+        return expenseMonth === Number.parseInt(monthFilter);
       });
     }
 
     if (yearFilter) {
-      filtered = filtered.filter((income) => {
-        const incomeDate = new Date(income.date);
-        return incomeDate.getFullYear() === Number.parseInt(yearFilter);
+      filtered = filtered.filter((expense) => {
+        const expenseDate = new Date(expense.date);
+        return expenseDate.getFullYear() === Number.parseInt(yearFilter);
       });
     }
 
@@ -109,8 +109,8 @@ export function IncomeListTable<TData, TValue>({
 
   // Calculate total amount from filtered data
   const totalAmount = React.useMemo(() => {
-    const filteredIncomes = filteredData as Income[];
-    return filteredIncomes.reduce((sum, income) => sum + income.amount, 0);
+    const filteredExpenses = filteredData as Expense[];
+    return filteredExpenses.reduce((sum, expense) => sum + expense.amount, 0);
   }, [filteredData]);
 
   const updatedColumns = React.useMemo(() => {
@@ -120,12 +120,12 @@ export function IncomeListTable<TData, TValue>({
           ...column,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           cell: ({ row }: { row: any }) => {
-            const income = row.original as Income;
+            const expense = row.original as Expense;
             return (
               <Button
                 variant="link"
                 className="h-auto p-0 text-sm text-primary underline"
-                onClick={() => handleEditIncome(income)}
+                onClick={() => handleEditExpense(expense)}
               >
                 Edit
               </Button>
@@ -173,6 +173,12 @@ export function IncomeListTable<TData, TValue>({
   const currentYear = new Date().getFullYear();
   const yearOptions = Array.from({ length: 6 }, (_, i) => currentYear - i);
 
+  // Get unique branches from data
+  const branchOptions = React.useMemo(() => {
+    const branches = Array.from(new Set((data as Expense[]).map((expense) => expense.branch)));
+    return branches.sort();
+  }, [data]);
+
   return (
     <div className="w-full space-y-4">
       <div className="flex items-center justify-between gap-4">
@@ -183,7 +189,7 @@ export function IncomeListTable<TData, TValue>({
         <div className="flex items-center gap-2">
           <div className="relative">
             <Input
-              placeholder="Search income..."
+              placeholder="Search expenses..."
               value={noteSearch}
               onChange={(event) => setNoteSearch(event.target.value)}
               className="h-9 w-64"
@@ -203,18 +209,15 @@ export function IncomeListTable<TData, TValue>({
               >
                 All Branches
               </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={branchFilter === 'Boys'}
-                onCheckedChange={() => setBranchFilter(branchFilter === 'Boys' ? '' : 'Boys')}
-              >
-                Boys
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={branchFilter === 'Girls'}
-                onCheckedChange={() => setBranchFilter(branchFilter === 'Girls' ? '' : 'Girls')}
-              >
-                Girls
-              </DropdownMenuCheckboxItem>
+              {branchOptions.map((branch) => (
+                <DropdownMenuCheckboxItem
+                  key={branch}
+                  checked={branchFilter === branch}
+                  onCheckedChange={() => setBranchFilter(branchFilter === branch ? '' : branch)}
+                >
+                  {branch}
+                </DropdownMenuCheckboxItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -232,24 +235,22 @@ export function IncomeListTable<TData, TValue>({
                 All Types
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={typeFilter === 'Student Fee'}
-                onCheckedChange={() =>
-                  setTypeFilter(typeFilter === 'Student Fee' ? '' : 'Student Fee')
-                }
+                checked={typeFilter === 'Salary'}
+                onCheckedChange={() => setTypeFilter(typeFilter === 'Salary' ? '' : 'Salary')}
               >
-                Student Fee
+                Salary
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={typeFilter === 'Book Sell'}
-                onCheckedChange={() => setTypeFilter(typeFilter === 'Book Sell' ? '' : 'Book Sell')}
+                checked={typeFilter === 'Food'}
+                onCheckedChange={() => setTypeFilter(typeFilter === 'Food' ? '' : 'Food')}
               >
-                Book Sell
+                Food
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={typeFilter === 'Other'}
-                onCheckedChange={() => setTypeFilter(typeFilter === 'Other' ? '' : 'Other')}
+                checked={typeFilter === 'Utility'}
+                onCheckedChange={() => setTypeFilter(typeFilter === 'Utility' ? '' : 'Utility')}
               >
-                Other
+                Utility
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -310,7 +311,7 @@ export function IncomeListTable<TData, TValue>({
 
           <Button className="h-9 px-3" onClick={() => setIsModalOpen(true)}>
             <Plus className="h-4 w-4" />
-            Add Income
+            Add Expense
           </Button>
         </div>
       </div>
@@ -384,24 +385,23 @@ export function IncomeListTable<TData, TValue>({
         </div>
       </div>
 
-      <AddIncomeModal open={isModalOpen} onOpenChange={setIsModalOpen} />
-      <EditIncomeModal
+      <AddExpenseModal open={isModalOpen} onOpenChange={setIsModalOpen} />
+      <EditExpenseModal
         open={isEditModalOpen}
         onOpenChange={setIsEditModalOpen}
-        income={selectedIncome}
+        expense={selectedExpense}
       />
     </div>
   );
 }
 
-export const incomeListTableColumns: ColumnDef<Income>[] = [
+export const expenseListTableColumns: ColumnDef<Expense>[] = [
   {
     accessorKey: 'type',
     header: 'Type',
     cell: ({ row }) => {
       const type = row.getValue('type') as string;
-      const variant =
-        type === 'Student Fee' ? 'default' : type === 'Book Sell' ? 'secondary' : 'outline';
+      const variant = type === 'Salary' ? 'default' : type === 'Food' ? 'secondary' : 'outline';
       return <Badge variant={variant}>{type}</Badge>;
     },
   },
