@@ -30,82 +30,81 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-import { AddDonationModal } from './AddDonationModal';
-import { EditDonationModal } from './EditDonationModal';
+import { AddIncomeModal } from './AddIncomeModal';
+import { EditIncomeModal } from './EditIncomeModal';
 
-export type Donation = {
+export type Income = {
   id: string;
-  donorName: string;
-  phoneNumber: string;
-  type: 'Membership' | 'Sadka' | 'Jakat';
+  type: 'Student Fee' | 'Book Sell' | 'Other';
+  note: string;
   addedBy: string;
   date: string;
   amount: number;
 };
 
-interface DonationListTableProps<TData, TValue> {
+interface IncomeListTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   title?: string;
   description?: string;
 }
 
-export function DonationListTable<TData, TValue>({
+export function IncomeListTable<TData, TValue>({
   columns,
   data,
-  title = 'Donations',
-}: DonationListTableProps<TData, TValue>) {
+  title = 'Income',
+}: IncomeListTableProps<TData, TValue>) {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
-  const [selectedDonation, setSelectedDonation] = React.useState<Donation | null>(null);
+  const [selectedIncome, setSelectedIncome] = React.useState<Income | null>(null);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
   // Search and filter states
-  const [nameSearch, setNameSearch] = React.useState<string>('');
+  const [noteSearch, setNoteSearch] = React.useState<string>('');
   const [typeFilter, setTypeFilter] = React.useState<string>('');
   const [monthFilter, setMonthFilter] = React.useState<string>('');
   const [yearFilter, setYearFilter] = React.useState<string>('');
 
-  const handleEditDonation = (donation: Donation) => {
-    setSelectedDonation(donation);
+  const handleEditIncome = (income: Income) => {
+    setSelectedIncome(income);
     setIsEditModalOpen(true);
   };
 
   const filteredData = React.useMemo(() => {
-    let filtered = data as Donation[];
+    let filtered = data as Income[];
 
-    if (nameSearch) {
-      filtered = filtered.filter((donation) =>
-        donation.donorName.toLowerCase().includes(nameSearch.toLowerCase()),
+    if (noteSearch) {
+      filtered = filtered.filter((income) =>
+        income.note.toLowerCase().includes(noteSearch.toLowerCase()),
       );
     }
 
     if (typeFilter) {
-      filtered = filtered.filter((donation) => donation.type === typeFilter);
+      filtered = filtered.filter((income) => income.type === typeFilter);
     }
 
     if (monthFilter) {
-      filtered = filtered.filter((donation) => {
-        const donationDate = new Date(donation.date);
-        const donationMonth = donationDate.getMonth() + 1; // getMonth() returns 0-11
-        return donationMonth === Number.parseInt(monthFilter);
+      filtered = filtered.filter((income) => {
+        const incomeDate = new Date(income.date);
+        const incomeMonth = incomeDate.getMonth() + 1; // getMonth() returns 0-11
+        return incomeMonth === Number.parseInt(monthFilter);
       });
     }
 
     if (yearFilter) {
-      filtered = filtered.filter((donation) => {
-        const donationDate = new Date(donation.date);
-        return donationDate.getFullYear() === Number.parseInt(yearFilter);
+      filtered = filtered.filter((income) => {
+        const incomeDate = new Date(income.date);
+        return incomeDate.getFullYear() === Number.parseInt(yearFilter);
       });
     }
 
     return filtered as TData[];
-  }, [data, nameSearch, typeFilter, monthFilter, yearFilter]);
+  }, [data, noteSearch, typeFilter, monthFilter, yearFilter]);
 
   // Calculate total amount from filtered data
   const totalAmount = React.useMemo(() => {
-    const filteredDonations = filteredData as Donation[];
-    return filteredDonations.reduce((sum, donation) => sum + donation.amount, 0);
+    const filteredIncomes = filteredData as Income[];
+    return filteredIncomes.reduce((sum, income) => sum + income.amount, 0);
   }, [filteredData]);
 
   const updatedColumns = React.useMemo(() => {
@@ -115,12 +114,12 @@ export function DonationListTable<TData, TValue>({
           ...column,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           cell: ({ row }: { row: any }) => {
-            const donation = row.original as Donation;
+            const income = row.original as Income;
             return (
               <Button
                 variant="link"
                 className="h-auto p-0 text-sm text-primary underline"
-                onClick={() => handleEditDonation(donation)}
+                onClick={() => handleEditIncome(income)}
               >
                 Edit
               </Button>
@@ -178,9 +177,9 @@ export function DonationListTable<TData, TValue>({
         <div className="flex items-center gap-2">
           <div className="relative">
             <Input
-              placeholder="Search donations..."
-              value={nameSearch}
-              onChange={(event) => setNameSearch(event.target.value)}
+              placeholder="Search income..."
+              value={noteSearch}
+              onChange={(event) => setNoteSearch(event.target.value)}
               className="h-9 w-64"
             />
           </div>
@@ -199,24 +198,24 @@ export function DonationListTable<TData, TValue>({
                 All Types
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={typeFilter === 'Membership'}
+                checked={typeFilter === 'Student Fee'}
                 onCheckedChange={() =>
-                  setTypeFilter(typeFilter === 'Membership' ? '' : 'Membership')
+                  setTypeFilter(typeFilter === 'Student Fee' ? '' : 'Student Fee')
                 }
               >
-                Membership
+                Student Fee
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={typeFilter === 'Sadka'}
-                onCheckedChange={() => setTypeFilter(typeFilter === 'Sadka' ? '' : 'Sadka')}
+                checked={typeFilter === 'Book Sell'}
+                onCheckedChange={() => setTypeFilter(typeFilter === 'Book Sell' ? '' : 'Book Sell')}
               >
-                Sadka
+                Book Sell
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={typeFilter === 'Jakat'}
-                onCheckedChange={() => setTypeFilter(typeFilter === 'Jakat' ? '' : 'Jakat')}
+                checked={typeFilter === 'Other'}
+                onCheckedChange={() => setTypeFilter(typeFilter === 'Other' ? '' : 'Other')}
               >
-                Jakat
+                Other
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -277,7 +276,7 @@ export function DonationListTable<TData, TValue>({
 
           <Button className="h-9 px-3" onClick={() => setIsModalOpen(true)}>
             <Plus className="h-4 w-4" />
-            Add Donation
+            Add Income
           </Button>
         </div>
       </div>
@@ -351,35 +350,37 @@ export function DonationListTable<TData, TValue>({
         </div>
       </div>
 
-      <AddDonationModal open={isModalOpen} onOpenChange={setIsModalOpen} />
-      <EditDonationModal
+      <AddIncomeModal open={isModalOpen} onOpenChange={setIsModalOpen} />
+      <EditIncomeModal
         open={isEditModalOpen}
         onOpenChange={setIsEditModalOpen}
-        donation={selectedDonation}
+        income={selectedIncome}
       />
     </div>
   );
 }
 
-export const donationListTableColumns: ColumnDef<Donation>[] = [
-  {
-    accessorKey: 'donorName',
-    header: 'Name',
-    cell: ({ row }) => <div className="font-medium">{row.getValue('donorName')}</div>,
-  },
-  {
-    accessorKey: 'phoneNumber',
-    header: 'Phone',
-    cell: ({ row }) => <div className="text-sm">{row.getValue('phoneNumber')}</div>,
-  },
+export const incomeListTableColumns: ColumnDef<Income>[] = [
   {
     accessorKey: 'type',
     header: 'Type',
     cell: ({ row }) => {
       const type = row.getValue('type') as string;
       const variant =
-        type === 'Membership' ? 'default' : type === 'Sadka' ? 'secondary' : 'outline';
+        type === 'Student Fee' ? 'default' : type === 'Book Sell' ? 'secondary' : 'outline';
       return <Badge variant={variant}>{type}</Badge>;
+    },
+  },
+  {
+    accessorKey: 'note',
+    header: 'Note',
+    cell: ({ row }) => {
+      const note = row.getValue('note') as string;
+      return (
+        <div className="max-w-xs truncate" title={note}>
+          {note}
+        </div>
+      );
     },
   },
   {
