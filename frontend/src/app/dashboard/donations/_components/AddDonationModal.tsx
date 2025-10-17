@@ -22,7 +22,13 @@ import {
 // Zod validation schema
 const donationSchema = z.object({
   donorName: z.string().min(1, 'Donor name is required'),
-  type: z.enum(['Membership', 'Sadka', 'Jakat']),
+  phoneNumber: z.string().min(1, 'Phone number is required'),
+  type: z
+    .string()
+    .min(1, 'Please select a donation type')
+    .refine((val) => ['Membership', 'Sadka', 'Jakat'].includes(val), {
+      message: 'Please select a valid donation type',
+    }),
   date: z.string().min(1, 'Date is required'),
   amount: z
     .number()
@@ -47,11 +53,13 @@ export function AddDonationModal({ open, onOpenChange }: AddDonationModalProps) 
     reset,
     setValue,
     watch,
+    trigger,
   } = useForm<DonationFormData>({
     resolver: zodResolver(donationSchema),
     defaultValues: {
       donorName: '',
-      type: undefined,
+      phoneNumber: '',
+      type: '',
       date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
       amount: 0,
     },
@@ -105,13 +113,28 @@ export function AddDonationModal({ open, onOpenChange }: AddDonationModalProps) 
             />
             {errors.donorName && <p className="text-sm text-red-500">{errors.donorName.message}</p>}
           </div>
-
+          {/* Phone Number */}
+          <div className="space-y-2">
+            <Label htmlFor="phoneNumber">Phone Number</Label>
+            <Input
+              id="phoneNumber"
+              placeholder="Enter phone number"
+              {...register('phoneNumber')}
+              className={errors.phoneNumber ? 'border-red-500' : ''}
+            />
+            {errors.phoneNumber && (
+              <p className="text-sm text-red-500">{errors.phoneNumber.message}</p>
+            )}
+          </div>
           {/* Donation Type */}
           <div className="space-y-2">
             <Label htmlFor="type">Donation Type</Label>
             <Select
               value={watchedType}
-              onValueChange={(value) => setValue('type', value as 'Membership' | 'Sadka' | 'Jakat')}
+              onValueChange={(value) => {
+                setValue('type', value as 'Membership' | 'Sadka' | 'Jakat');
+                trigger('type'); // Trigger validation to clear error message
+              }}
             >
               <SelectTrigger className={errors.type ? 'border-red-500' : ''}>
                 <SelectValue placeholder="Select donation type" />
