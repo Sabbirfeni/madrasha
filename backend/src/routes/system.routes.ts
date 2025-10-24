@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { Request, Response } from "express";
 import mongoose from "mongoose";
 import { env } from "../config/env";
 import { getConnectionInfo } from "../config/database";
@@ -10,7 +11,7 @@ const router = Router();
 /**
  * Health check endpoint with database status
  */
-router.get("/health", (_req, res) => {
+router.get("/health", (_req: Request, res: Response) => {
   const dbInfo = getConnectionInfo();
   const isHealthy = dbInfo.status === "connected";
 
@@ -38,7 +39,7 @@ router.get("/health", (_req, res) => {
 /**
  * Test endpoint
  */
-router.get("/test", (_req, res) => {
+router.get("/test", (_req: Request, res: Response) => {
   const response: ApiResponse = {
     success: true,
     message: "Test route working",

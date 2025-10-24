@@ -104,10 +104,8 @@ const connectWithRetry = async (): Promise<void> => {
       );
 
       await mongoose.connect(env.MONGODB_URI, {
-        maxPoolSize: 10,
         serverSelectionTimeoutMS: 5000,
         socketTimeoutMS: 45000,
-        bufferCommands: false,
       });
 
       console.log("✅ MongoDB connected successfully");
