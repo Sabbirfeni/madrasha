@@ -9,15 +9,6 @@ export enum UserRole {
   MODERATOR = "moderator",
 }
 
-// Madrasha branches
-export enum Branch {
-  MAIN_CAMPUS = "main_campus",
-  NORTH_CAMPUS = "north_campus",
-  SOUTH_CAMPUS = "south_campus",
-  EAST_CAMPUS = "east_campus",
-  WEST_CAMPUS = "west_campus",
-}
-
 // Donation types
 export enum DonationType {
   MONTHLY = "monthly",

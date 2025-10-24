@@ -1,14 +1,8 @@
 import { type Request, type Response, type NextFunction } from "express";
 import { HttpStatus } from "../config/constants";
-import { ApiResponse } from "@/types/common";
+import { ApiResponse } from "../types/common";
+import { AppError } from "../utils/AppError";
 
-/**
- * Global error handling middleware
- * @param error - Error object
- * @param req - Express request object
- * @param res - Express response object
- * @param next - Express next function
- */
 export const errorHandler = (
   error: Error,
   _req: Request,
@@ -17,16 +11,32 @@ export const errorHandler = (
 ): void => {
   console.error("Error:", error);
 
+  let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+  let message = "Internal server error";
+
+  if (error instanceof AppError) {
+    statusCode = error.statusCode;
+    message = error.message || AppError.getDefaultMessage(statusCode);
+  } else if (error.name === "ValidationError") {
+    statusCode = HttpStatus.BAD_REQUEST;
+    message = `Validation failed: ${error.message}`;
+  } else if (error.name === "CastError") {
+    statusCode = HttpStatus.BAD_REQUEST;
+    message = "Invalid ID format";
+  } else if ((error as any).code === 11000) {
+    statusCode = HttpStatus.CONFLICT;
+    message = "Duplicate entry found";
+  } else if (process.env.NODE_ENV !== "production") {
+    message = error.message || "Something went wrong";
+  }
+
   const response: ApiResponse = {
     success: false,
-    message:
-      process.env.NODE_ENV === "production"
-        ? "Internal server error"
-        : error.message || "Something went wrong",
+    message,
     timestamp: new Date().toISOString(),
   };
 
-  res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response);
+  res.status(statusCode).json(response);
 };
 
 /**
