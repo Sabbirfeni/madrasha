@@ -103,4 +103,3 @@ const startServer = async (): Promise<void> => {
 
 // Start the server
 startServer();
-
