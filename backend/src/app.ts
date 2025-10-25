@@ -10,7 +10,7 @@ const app: Express = express();
 applySecurityMiddleware(app);
 applyCommonMiddleware(app);
 
-app.use("/", routes);
+app.use("/api", routes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
