@@ -1,5 +1,6 @@
 'use client';
 
+import { formatDate } from '@/lib/date-utils';
 import { Camera, Edit2, Save, X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
@@ -363,7 +364,7 @@ export default function StudentDetailsPage() {
                 />
               ) : (
                 <div className="p-2 text-sm bg-muted/40 rounded-md">
-                  {new Date(watchedValues.registration_date).toLocaleDateString()}
+                  {formatDate(watchedValues.registration_date)}
                 </div>
               )}
             </div>

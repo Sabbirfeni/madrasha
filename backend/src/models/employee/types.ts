@@ -36,3 +36,12 @@ export type CreateEmployeeInput = {
   current_location: string;
   permanent_location: string;
 };
+
+export type EmployeeListItem = {
+  id: string;
+  fullname: string;
+  role: string;
+  branch: string;
+  join_date: Date;
+  phone_number: string;
+};

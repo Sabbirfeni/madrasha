@@ -1,5 +1,7 @@
 'use client';
 
+import { formatDate } from '@/lib/date-utils';
+import { Employee } from '@/services/employees/types';
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -14,7 +16,6 @@ import * as React from 'react';
 
 import Link from 'next/link';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -31,16 +32,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-
-export type Employee = {
-  id: string;
-  name: string;
-  employee_image?: string;
-  employment_type: 'Teachers' | 'Management' | 'Residential Staff' | 'Technical';
-  branch: 'Boys' | 'Girls';
-  join_date: string;
-  phone: string;
-};
 
 interface EmployeeListTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -65,7 +56,7 @@ export function EmployeeListTable<TData, TValue>({
 
     if (nameSearch) {
       filtered = filtered.filter((employee) =>
-        employee.name.toLowerCase().includes(nameSearch.toLowerCase()),
+        employee.fullname.toLowerCase().includes(nameSearch.toLowerCase()),
       );
     }
 
@@ -74,7 +65,7 @@ export function EmployeeListTable<TData, TValue>({
     }
 
     if (employmentTypeFilter) {
-      filtered = filtered.filter((employee) => employee.employment_type === employmentTypeFilter);
+      filtered = filtered.filter((employee) => employee.role === employmentTypeFilter);
     }
 
     return filtered as TData[];
@@ -271,43 +262,29 @@ export function EmployeeListTable<TData, TValue>({
   );
 }
 
-export const employeeListTableColumns: ColumnDef<Employee>[] = [
+export const employeeListTableColumns: ColumnDef<Employee, unknown>[] = [
   {
-    accessorKey: 'name',
+    accessorKey: 'fullname',
     header: 'Name',
-    cell: ({ row }) => {
-      const employee = row.original;
-      const initials = employee.name
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .toUpperCase();
-
-      return (
-        <div className="flex items-center gap-3">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={employee.employee_image || '/placeholder.svg'} alt={employee.name} />
-            <AvatarFallback className="text-xs font-medium">{initials}</AvatarFallback>
-          </Avatar>
-          <div className="font-medium">{employee.name}</div>
-        </div>
-      );
-    },
+    cell: ({ row }) => <div className="font-medium">{row.getValue('fullname')}</div>,
   },
   {
-    accessorKey: 'employment_type',
-    header: 'Employment Type',
-    cell: ({ row }) => <div className="text-sm">{row.getValue('employment_type')}</div>,
+    accessorKey: 'role',
+    header: 'Role',
+    cell: ({ row }) => <div className="text-sm">{row.getValue('role')}</div>,
   },
   {
     accessorKey: 'join_date',
     header: 'Join Date',
-    cell: ({ row }) => <div className="text-sm">{row.getValue('join_date')}</div>,
+    cell: ({ row }) => {
+      const date = row.getValue('join_date') as string;
+      return <div className="text-sm">{formatDate(date)}</div>;
+    },
   },
   {
-    accessorKey: 'phone',
+    accessorKey: 'phone_number',
     header: 'Phone',
-    cell: ({ row }) => <div className="font-mono text-sm">{row.getValue('phone')}</div>,
+    cell: ({ row }) => <div className="font-mono text-sm">{row.getValue('phone_number')}</div>,
   },
   {
     id: 'actions',

@@ -1,5 +1,6 @@
 'use client';
 
+import { getTodayDate } from '@/lib/date-utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -60,7 +61,7 @@ export function AddDonationModal({ open, onOpenChange }: AddDonationModalProps) 
       donorName: '',
       phoneNumber: '',
       type: '',
-      date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
+      date: getTodayDate(), // Today's date in YYYY-MM-DD format
       amount: 0,
     },
   });
