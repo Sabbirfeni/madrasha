@@ -8,6 +8,8 @@ const EmployesPage = async () => {
     tags: ['employees'],
   });
 
+  console.log('server response', response);
+
   if (!response) return;
 
   return (
