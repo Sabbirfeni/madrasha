@@ -12,8 +12,8 @@ type ApiResponse<T = unknown> = {
 };
 
 type CacheConfig = {
-  cache?: boolean;
-  life?: 'default' | 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks' | 'max';
+  cache?: boolean | 'force-cache' | 'no-store';
+  revalidate?: number | false;
   tags?: string[];
 };
 
@@ -21,6 +21,7 @@ type FetchOptions = {
   throw?: boolean;
   query?: Record<string, string | number | boolean | undefined>;
   params?: Record<string, string | number>;
+  cache?: RequestCache;
 };
 
 type PaginationResult<T> = {
