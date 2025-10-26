@@ -1,7 +1,7 @@
 import { API_URL } from '@/config/api';
 import { type BetterFetchOption, createFetch } from '@better-fetch/fetch';
 
-import type { FetchOptions } from './types';
+import type { ApiResponse, FetchOptions } from './types';
 
 const betterFetch = createFetch({
   baseURL: API_URL,
@@ -27,12 +27,12 @@ const publicGet = async <T, E = unknown>(endpoint: string, fetchOptions?: FetchO
     });
   }
 
-  const { data, error } = await betterFetch<T, Error & E>(url, {
+  const { data, error } = await betterFetch<ApiResponse<T>, Error & E>(url, {
     query,
     ...restOptions,
   } as BetterFetchOption);
   if (shouldThrow && error) throw error;
-  return { data, error };
+  return { data: data?.data, error };
 };
 
 const publicPost = async <T, E = unknown>(
@@ -49,14 +49,14 @@ const publicPost = async <T, E = unknown>(
     });
   }
 
-  const { data, error } = await betterFetch<T, Error & E>(url, {
+  const { data, error } = await betterFetch<ApiResponse<T>, Error & E>(url, {
     method: 'POST',
     body: JSON.stringify(body),
     query,
     ...restOptions,
   } as BetterFetchOption);
   if (shouldThrow && error) throw error;
-  return { data, error };
+  return { data: data?.data, error };
 };
 
 export { publicGet, publicPost };

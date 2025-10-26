@@ -4,7 +4,8 @@ import type { Employee } from './types';
 
 const getEmployees = async (cacheConfig?: CacheConfig) => {
   const response = await serverGet<PaginationResult<Employee>>('/employees', {}, cacheConfig);
-  return response.data?.docs || [];
+
+  return response.data;
 };
 
 export { getEmployees };

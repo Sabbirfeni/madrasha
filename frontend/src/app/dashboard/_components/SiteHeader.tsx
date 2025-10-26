@@ -1,5 +1,7 @@
 'use client';
 
+import { getCurrentYear } from '@/lib/date-utils';
+
 import { useState } from 'react';
 
 import { usePathname } from 'next/navigation';
@@ -21,7 +23,7 @@ export function SiteHeader() {
   const isOverviewPage = pathname === '/dashboard/overview';
 
   // Generate year options (current year and previous 5 years)
-  const currentYear = new Date().getFullYear();
+  const currentYear = getCurrentYear();
   const yearOptions = Array.from({ length: 6 }, (_, i) => currentYear - i);
 
   // State for selected year (default to current year)

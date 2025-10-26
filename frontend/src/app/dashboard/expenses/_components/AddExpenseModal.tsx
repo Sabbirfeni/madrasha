@@ -1,5 +1,6 @@
 'use client';
 
+import { getTodayDate } from '@/lib/date-utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -63,7 +64,7 @@ export function AddExpenseModal({ open, onOpenChange }: AddExpenseModalProps) {
       branch: '',
       type: '',
       note: '',
-      date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
+      date: getTodayDate(), // Today's date in YYYY-MM-DD format
       amount: 0,
     },
   });

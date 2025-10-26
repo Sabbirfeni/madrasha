@@ -1,5 +1,6 @@
 'use client';
 
+import { formatDate, getCurrentYear } from '@/lib/date-utils';
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -170,7 +171,7 @@ export function ExpenseListTable<TData, TValue>({
   ];
 
   // Generate year options (current year and previous 5 years)
-  const currentYear = new Date().getFullYear();
+  const currentYear = getCurrentYear();
   const yearOptions = Array.from({ length: 6 }, (_, i) => currentYear - i);
 
   // Get unique branches from data
@@ -426,8 +427,8 @@ export const expenseListTableColumns: ColumnDef<Expense>[] = [
     accessorKey: 'date',
     header: 'Date',
     cell: ({ row }) => {
-      const date = new Date(row.getValue('date'));
-      return <div className="text-sm">{date.toLocaleDateString()}</div>;
+      const date = row.getValue('date') as string;
+      return <div className="text-sm">{formatDate(date)}</div>;
     },
   },
   {

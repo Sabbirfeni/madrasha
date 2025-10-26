@@ -1,5 +1,6 @@
 'use client';
 
+import { formatDate } from '@/lib/date-utils';
 import { Employee } from '@/services/employees/types';
 import {
   type ColumnDef,
@@ -277,7 +278,7 @@ export const employeeListTableColumns: ColumnDef<Employee, unknown>[] = [
     header: 'Join Date',
     cell: ({ row }) => {
       const date = row.getValue('join_date') as string;
-      return <div className="text-sm">{new Date(date).toLocaleDateString()}</div>;
+      return <div className="text-sm">{formatDate(date)}</div>;
     },
   },
   {

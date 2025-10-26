@@ -4,6 +4,13 @@ type ApiError = {
   message?: string;
 };
 
+type ApiResponse<T = unknown> = {
+  success: boolean;
+  message: string;
+  data?: T;
+  timestamp: string;
+};
+
 type CacheConfig = {
   cache?: boolean;
   life?: 'default' | 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks' | 'max';
@@ -26,4 +33,4 @@ type PaginationResult<T> = {
   hasPrev: boolean;
 };
 
-export type { ApiError, CacheConfig, FetchOptions, PaginationResult };
+export type { ApiError, ApiResponse, CacheConfig, FetchOptions, PaginationResult };
