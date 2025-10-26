@@ -5,7 +5,6 @@ import { EmployeeListTable, employeeListTableColumns } from './_components/Emplo
 const EmployesPage = async () => {
   const response = await getEmployees({
     cache: true,
-    life: 'minutes',
     tags: ['employees'],
   });
 
