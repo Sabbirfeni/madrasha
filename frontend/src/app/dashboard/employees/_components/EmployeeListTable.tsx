@@ -45,6 +45,7 @@ export function EmployeeListTable<TData, TValue>({
   data,
   title = 'Employees',
 }: EmployeeListTableProps<TData, TValue>) {
+  console.log('client response', data);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
   const [nameSearch, setNameSearch] = React.useState<string>('');
