@@ -7,7 +7,7 @@ const EmployesPage = async () => {
     cache: true,
     tags: ['employees'],
   });
-
+  console.log('server response', response);
   if (!response) return;
 
   return (
