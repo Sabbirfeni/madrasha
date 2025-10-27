@@ -18,6 +18,7 @@ type Error = {
 };
 
 const publicGet = async <T, E = unknown>(endpoint: string, fetchOptions?: FetchOptions) => {
+  console.log('publicGet', endpoint);
   const { throw: shouldThrow, query, params, ...restOptions } = fetchOptions || {};
 
   let url = endpoint;
