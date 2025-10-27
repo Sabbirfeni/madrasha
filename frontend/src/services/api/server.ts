@@ -6,6 +6,7 @@ const serverGet = async <T, E = unknown>(
   fetchOptions?: FetchOptions,
   cacheConfig?: CacheConfig,
 ) => {
+  console.log('serverGet', endpoint);
   // In Next.js 15, caching is handled via fetch options
   // If cache is disabled, add no-store to fetch options
   if (cacheConfig?.cache === false) {
