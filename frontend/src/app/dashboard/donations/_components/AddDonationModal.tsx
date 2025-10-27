@@ -68,21 +68,16 @@ export function AddDonationModal({ open, onOpenChange }: AddDonationModalProps) 
 
   const watchedType = watch('type');
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const onSubmit = async (data: DonationFormData) => {
     setIsSubmitting(true);
     try {
-      // Here you would typically call an API to add the donation
-      console.log('Adding donation:', data);
-
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Reset form and close modal
       reset();
       onOpenChange(false);
-
-      // You could add a toast notification here
-      console.log('Donation added successfully!');
     } catch (error) {
       console.error('Error adding donation:', error);
     } finally {

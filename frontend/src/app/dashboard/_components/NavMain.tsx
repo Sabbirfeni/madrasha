@@ -21,13 +21,12 @@ type NavItem = {
 
 const NavMain = ({ items }: { items: NavItem[] }) => {
   const pathname = usePathname();
-  console.log(pathname);
+
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
         <SidebarMenu>
           {items.map((item) => {
-            console.log(pathname.startsWith(item.url + '/'));
             const isActive = pathname === item.url || pathname.startsWith(item.url + '/');
 
             return (

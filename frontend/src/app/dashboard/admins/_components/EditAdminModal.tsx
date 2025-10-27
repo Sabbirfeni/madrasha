@@ -34,8 +34,6 @@ export function EditAdminModal({ open, onOpenChange, admin }: EditAdminModalProp
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Form submission logic would go here
-    console.log('Edit admin form submitted:', { admin: admin?.id, permissions });
   };
 
   if (!admin) return null;
