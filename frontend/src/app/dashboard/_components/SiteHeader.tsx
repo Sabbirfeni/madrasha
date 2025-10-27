@@ -31,7 +31,6 @@ export function SiteHeader() {
 
   const handleYearChange = (year: number | 'all') => {
     setSelectedYear(year);
-    console.log('Selected year:', year);
   };
 
   const getDisplayText = () => {

@@ -76,9 +76,8 @@ export function AdminListTable<TData, TValue>({
     setIsDeleteModalOpen(true);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleDeleteConfirm = (admin: Admin) => {
-    console.log('Deleting admin:', admin.name);
-    // Here you would typically call an API to delete the admin
     setIsDeleteModalOpen(false);
     setSelectedAdmin(null);
   };
