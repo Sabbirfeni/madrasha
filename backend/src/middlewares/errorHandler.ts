@@ -25,7 +25,31 @@ export const errorHandler = (
     message = "Invalid ID format";
   } else if ((error as any).code === 11000) {
     statusCode = HttpStatus.CONFLICT;
-    message = "Duplicate entry found";
+    const mongoError = error as any;
+
+    // Debug: log the full error structure
+    console.error("MongoDB Duplicate Key Error Details:", {
+      code: mongoError.code,
+      keyPattern: mongoError.keyPattern,
+      keyValue: mongoError.keyValue,
+      index: mongoError.index,
+      errmsg: mongoError.errmsg,
+    });
+
+    // Extract field name from keyPattern
+    const keyMatch = mongoError.keyPattern
+      ? Object.keys(mongoError.keyPattern).join(", ")
+      : "unknown field";
+
+    // Check if it's an employee_id duplicate
+    if (keyMatch.includes("employee_id")) {
+      message = "This employee is already an admin";
+    } else if (keyMatch === "_id") {
+      // Special case for _id duplicates (shouldn't happen normally)
+      message = "A record with this ID already exists";
+    } else {
+      message = `Duplicate entry found for field(s): ${keyMatch}`;
+    }
   } else if (process.env.NODE_ENV !== "production") {
     message = error.message || "Something went wrong";
   }
