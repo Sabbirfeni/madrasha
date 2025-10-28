@@ -5,13 +5,8 @@ import { hashPassword } from "../../utils/password";
 
 const adminSchema: Schema = new mongoose.Schema(
   {
-    id: {
-      type: String,
-      default: () => crypto.randomUUID(),
-      unique: true,
-    },
     employee_id: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
       required: true,
       ref: "Employee",
     },
@@ -19,9 +14,8 @@ const adminSchema: Schema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    type: {
-      type: String,
-      enum: Object.values(UserRole),
+    role: {
+      type: Number,
       default: UserRole.ADMIN,
     },
     access_boys_section: {

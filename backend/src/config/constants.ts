@@ -4,9 +4,34 @@ export const RETRY_DELAY_MS = 5000;
 
 // User roles
 export enum UserRole {
-  SUPER_ADMIN = "super_admin",
-  ADMIN = "admin",
-  MODERATOR = "moderator",
+  SUPER_ADMIN = 1,
+  ADMIN = 2,
+  MODERATOR = 3,
+}
+
+// Employee roles
+export enum EmployeeType {
+  ADMINISTRATION = 1,
+  TEACHER = 3,
+  STAFF = 4,
+}
+
+// Employee designations
+export enum Designation {
+  HEAD = 1,
+  DEVELOPER = 2,
+  SENIOR_TEACHER = 3,
+  JUNIOR_TEACHER = 4,
+  COOK = 5,
+  LIBRARIAN = 6,
+}
+
+// Branch types
+export enum Branch {
+  ALL = 1,
+  BOYS = 2,
+  GIRLS = 3,
+  HOSTELS = 4,
 }
 
 // Donation types

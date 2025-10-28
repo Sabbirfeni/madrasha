@@ -1,11 +1,10 @@
 import { z } from "zod";
-import { UserRole } from "../../../config/constants";
 
 export const createAdminSchema = z.object({
-  type: z.nativeEnum(UserRole, {
-    errorMap: () => ({ message: "Invalid admin type" }),
-  }),
-  employee_id: z.string().uuid("Invalid employee ID format"),
+  role: z.number().int().positive("Role must be a valid positive number"),
+  employee_id: z
+    .string()
+    .regex(/^[0-9a-f]{24}$/i, "Invalid employee ID format"),
   access_boys_section: z.boolean({
     errorMap: () => ({ message: "Access boys section must be boolean" }),
   }),

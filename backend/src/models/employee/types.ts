@@ -1,10 +1,9 @@
 import { type Document } from "mongoose";
 
 export type EmployeeDocument = Document & {
-  id: string;
-  branch: string;
-  role: string;
-  designation: string;
+  branch: number;
+  employment_type: number;
+  designation: number;
   fullname: string;
   profile_image?: string;
   nid_no: string;
@@ -21,9 +20,9 @@ export type EmployeeDocument = Document & {
 };
 
 export type CreateEmployeeInput = {
-  branch: string;
-  role: string;
-  designation: string;
+  branch: number;
+  employment_type: number;
+  designation: number;
   fullname: string;
   profile_image?: string;
   nid_no: string;
@@ -38,10 +37,10 @@ export type CreateEmployeeInput = {
 };
 
 export type EmployeeListItem = {
-  id: string;
+  _id: string;
   fullname: string;
-  role: string;
-  branch: string;
+  employment_type: number;
+  branch: number;
   join_date: Date;
   phone_number: string;
 };

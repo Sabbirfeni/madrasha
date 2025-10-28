@@ -14,7 +14,7 @@ export const createEmployee = async (
 ): Promise<void> => {
   const {
     branch,
-    role,
+    employment_type,
     designation,
     fullname,
     profile_image,
@@ -41,7 +41,7 @@ export const createEmployee = async (
   // Create new employee
   await Employee.create({
     branch,
-    role,
+    employment_type,
     designation,
     fullname,
     profile_image,
@@ -79,7 +79,7 @@ export const getEmployees = async (
 
   const [employees, total] = await Promise.all([
     Employee.find()
-      .select("id fullname role branch join_date phone_number")
+      .select("_id fullname employment_type branch join_date phone_number")
       .limit(limit)
       .skip(skip)
       .lean(),
