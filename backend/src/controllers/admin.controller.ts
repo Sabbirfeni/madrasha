@@ -21,6 +21,11 @@ export const createAdmin = async (
     access_residential_section,
   }: CreateAdminInput = req.body;
 
+  // Validate employee_id format before conversion
+  if (!mongoose.Types.ObjectId.isValid(employee_id)) {
+    throw new AppError("Invalid employee ID format", HttpStatus.BAD_REQUEST);
+  }
+
   // Convert employee_id to ObjectId
   const employeeObjectId = new mongoose.Types.ObjectId(employee_id);
 

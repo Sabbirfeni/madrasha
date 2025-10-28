@@ -8,6 +8,7 @@ const adminSchema: Schema = new mongoose.Schema(
     employee_id: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
+      unique: true,
       ref: "Employee",
     },
     password: {
