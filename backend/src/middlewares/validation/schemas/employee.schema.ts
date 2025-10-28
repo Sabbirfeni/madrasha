@@ -1,9 +1,12 @@
 import { z } from "zod";
 
 export const createEmployeeSchema = z.object({
-  branch: z.string().min(1, "Branch is required"),
-  role: z.string().min(1, "Role is required"),
-  designation: z.string().min(1, "Designation is required"),
+  branch: z.number().int().positive("Branch must be a positive number"),
+  employment_type: z.number().int().positive("Role must be a positive number"),
+  designation: z
+    .number()
+    .int()
+    .positive("Designation must be a positive number"),
   fullname: z
     .string()
     .min(1, "Full name is required")
@@ -12,7 +15,7 @@ export const createEmployeeSchema = z.object({
     .string()
     .max(255, "Profile image URL must not exceed 255 characters")
     .optional(),
-  nid_no: z.string().regex(/^\d{17}$/, "NID number must be exactly 17 digits"),
+  nid_no: z.string().regex(/^\d{10}$/, "NID number must be exactly 10 digits"),
   gender: z
     .string()
     .min(1, "Gender is required")
@@ -24,7 +27,7 @@ export const createEmployeeSchema = z.object({
   resign_date: z.string().datetime("Invalid resign date format").optional(),
   salary: z
     .number()
-    .positive("Salary must be positive")
+    .min(0, "Bonus must be non-negative")
     .max(9999999999, "Salary must not exceed 10 digits"),
   bonus: z
     .number()

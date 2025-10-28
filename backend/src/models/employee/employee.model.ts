@@ -2,25 +2,17 @@ import mongoose, { type Schema } from "mongoose";
 
 const employeeSchema: Schema = new mongoose.Schema(
   {
-    id: {
-      type: String,
-      default: () => crypto.randomUUID(),
-      unique: true,
-    },
     branch: {
-      type: String,
+      type: Number,
       required: true,
-      ref: "Branch",
     },
-    role: {
-      type: String,
+    employment_type: {
+      type: Number,
       required: true,
-      ref: "Role",
     },
     designation: {
-      type: String,
+      type: Number,
       required: true,
-      ref: "Designation",
     },
     fullname: {
       type: String,
@@ -37,9 +29,9 @@ const employeeSchema: Schema = new mongoose.Schema(
       unique: true,
       validate: {
         validator: function (v: string) {
-          return /^\d{17}$/.test(v);
+          return /^\d{10}$/.test(v);
         },
-        message: "NID number must be exactly 17 digits",
+        message: "NID number must be exactly 10 digits",
       },
     },
     gender: {
