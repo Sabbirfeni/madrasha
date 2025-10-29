@@ -12,18 +12,30 @@ export enum UserRole {
 // Employee roles
 export enum EmployeeType {
   ADMINISTRATION = 1,
-  TEACHER = 3,
+  TEACHER = 2,
+  MEDIA_IT = 3,
   STAFF = 4,
 }
 
 // Employee designations
 export enum Designation {
-  HEAD = 1,
-  DEVELOPER = 2,
-  SENIOR_TEACHER = 3,
-  JUNIOR_TEACHER = 4,
-  COOK = 5,
-  LIBRARIAN = 6,
+  PRINCIPAL_HEAD_MUHTAMIM = 1,
+  VICE_PRINCIPAL_NAIB_MUHTAMIM = 2,
+  OFFICE_ADMINISTRATOR = 3,
+  ACCOUNTANT = 4,
+  SUBJECT_TEACHER = 5,
+  GENERAL_SUBJECTS_TEACHER = 6,
+  HIFZ_TEACHER = 7,
+  ASSISTANT_TEACHER = 8,
+  MUALLIM = 9,
+  MUALLIMA = 10,
+  DEVELOPER = 11,
+  MEDIA_MANAGER = 12,
+  COMPUTER_OPERATOR = 13,
+  PEON = 14,
+  LIBRARIAN = 15,
+  DRIVER = 16,
+  COOK = 17,
 }
 
 // Branch types
@@ -64,14 +76,6 @@ export enum ExpenseType {
   TRANSPORTATION = "transportation",
   MEDICAL = "medical",
   OTHER = "other",
-}
-
-// Employment types
-export enum EmploymentType {
-  FULL_TIME = "full_time",
-  PART_TIME = "part_time",
-  CONTRACT = "contract",
-  VOLUNTEER = "volunteer",
 }
 
 // Student sections

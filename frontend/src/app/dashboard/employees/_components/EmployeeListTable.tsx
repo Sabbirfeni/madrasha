@@ -1,5 +1,7 @@
 'use client';
 
+import { EmployeeType } from '@/domain/employees';
+import { formatDesignation, formatEmployeeType } from '@/domain/employees';
 import { formatDate } from '@/lib/date-utils';
 import { Employee } from '@/services/employees/types';
 import {
@@ -49,7 +51,7 @@ export function EmployeeListTable<TData, TValue>({
 
   const [nameSearch, setNameSearch] = React.useState<string>('');
   const [branchFilter, setBranchFilter] = React.useState<string>('');
-  const [employmentTypeFilter, setEmploymentTypeFilter] = React.useState<string>('');
+  const [employmentTypeFilter, setEmploymentTypeFilter] = React.useState<number | ''>('');
 
   const filteredData = React.useMemo(() => {
     let filtered = data as Employee[];
@@ -64,8 +66,10 @@ export function EmployeeListTable<TData, TValue>({
       filtered = filtered.filter((employee) => employee.branch === branchFilter);
     }
 
-    if (employmentTypeFilter) {
-      filtered = filtered.filter((employee) => employee.role === employmentTypeFilter);
+    if (employmentTypeFilter !== '') {
+      filtered = filtered.filter(
+        (employee) => (employee as unknown as Employee).employment_type === employmentTypeFilter,
+      );
     }
 
     return filtered as TData[];
@@ -135,49 +139,59 @@ export function EmployeeListTable<TData, TValue>({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="h-9 px-3 bg-transparent">
-                {employmentTypeFilter || 'Employment Type'}
+                {employmentTypeFilter === ''
+                  ? 'Employment Type'
+                  : formatEmployeeType(employmentTypeFilter)}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuCheckboxItem
-                checked={!employmentTypeFilter}
+                checked={employmentTypeFilter === ''}
                 onCheckedChange={() => setEmploymentTypeFilter('')}
               >
                 All Types
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={employmentTypeFilter === 'Teachers'}
-                onCheckedChange={() =>
-                  setEmploymentTypeFilter(employmentTypeFilter === 'Teachers' ? '' : 'Teachers')
-                }
-              >
-                Teachers
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={employmentTypeFilter === 'Management'}
-                onCheckedChange={() =>
-                  setEmploymentTypeFilter(employmentTypeFilter === 'Management' ? '' : 'Management')
-                }
-              >
-                Management
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={employmentTypeFilter === 'Residential Staff'}
+                checked={employmentTypeFilter === EmployeeType.TEACHER}
                 onCheckedChange={() =>
                   setEmploymentTypeFilter(
-                    employmentTypeFilter === 'Residential Staff' ? '' : 'Residential Staff',
+                    employmentTypeFilter === EmployeeType.TEACHER ? '' : EmployeeType.TEACHER,
                   )
                 }
               >
-                Residential Staff
+                Teacher
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={employmentTypeFilter === 'Technical'}
+                checked={employmentTypeFilter === EmployeeType.ADMINISTRATION}
                 onCheckedChange={() =>
-                  setEmploymentTypeFilter(employmentTypeFilter === 'Technical' ? '' : 'Technical')
+                  setEmploymentTypeFilter(
+                    employmentTypeFilter === EmployeeType.ADMINISTRATION
+                      ? ''
+                      : EmployeeType.ADMINISTRATION,
+                  )
                 }
               >
-                Technical
+                Administration
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={employmentTypeFilter === EmployeeType.STAFF}
+                onCheckedChange={() =>
+                  setEmploymentTypeFilter(
+                    employmentTypeFilter === EmployeeType.STAFF ? '' : EmployeeType.STAFF,
+                  )
+                }
+              >
+                Staff
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={employmentTypeFilter === EmployeeType.MEDIA_IT}
+                onCheckedChange={() =>
+                  setEmploymentTypeFilter(
+                    employmentTypeFilter === EmployeeType.MEDIA_IT ? '' : EmployeeType.MEDIA_IT,
+                  )
+                }
+              >
+                Media & IT
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -269,9 +283,20 @@ export const employeeListTableColumns: ColumnDef<Employee, unknown>[] = [
     cell: ({ row }) => <div className="font-medium">{row.getValue('fullname')}</div>,
   },
   {
-    accessorKey: 'role',
-    header: 'Role',
-    cell: ({ row }) => <div className="text-sm">{row.getValue('role')}</div>,
+    accessorKey: 'employment_type',
+    header: 'Employment Type',
+    cell: ({ row }) => {
+      const value = row.getValue('employment_type') as number;
+      return <div className="text-sm">{formatEmployeeType(value)}</div>;
+    },
+  },
+  {
+    accessorKey: 'designation',
+    header: 'Designation',
+    cell: ({ row }) => {
+      const value = (row.getValue('designation') as number | null) ?? null;
+      return <div className="text-sm">{formatDesignation(value)}</div>;
+    },
   },
   {
     accessorKey: 'join_date',
@@ -293,7 +318,7 @@ export const employeeListTableColumns: ColumnDef<Employee, unknown>[] = [
     cell: ({ row }) => {
       const employee = row.original;
       return (
-        <Link href={`/dashboard/employees/${employee.id}`}>
+        <Link href={`/dashboard/employees/${employee._id}`}>
           <Button variant="link" className="h-auto p-0 text-sm text-primary underline">
             Details
           </Button>
