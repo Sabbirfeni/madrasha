@@ -79,7 +79,9 @@ export const getEmployees = async (
 
   const [employees, total] = await Promise.all([
     Employee.find()
-      .select("_id fullname employment_type branch join_date phone_number")
+      .select(
+        "_id fullname employment_type designation branch join_date phone_number"
+      )
       .limit(limit)
       .skip(skip)
       .lean(),

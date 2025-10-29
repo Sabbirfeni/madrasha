@@ -40,6 +40,7 @@ export type EmployeeListItem = {
   _id: string;
   fullname: string;
   employment_type: number;
+  designation?: number;
   branch: number;
   join_date: Date;
   phone_number: string;
