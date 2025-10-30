@@ -1,16 +1,46 @@
+import { getToken } from 'next-auth/jwt';
+
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(req: NextRequest) {
-  const authCookie = req.cookies.get('auth')?.value;
+import {
+  buildRedirect,
+  getDefaultAuthedRedirect,
+  isAuthPage,
+  isProtectedPath,
+} from './lib/auth-middleware';
 
-  if (authCookie !== 'true') {
-    return NextResponse.redirect(new URL('/login', req.url));
+export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  console.log('hello', token);
+  // Redirect authenticated users away from auth pages
+  if (isAuthPage(pathname)) {
+    if (token) {
+      const target = getDefaultAuthedRedirect();
+      return NextResponse.redirect(new URL(target, req.url));
+    }
+    return NextResponse.next();
+  }
+
+  // Protect app pages
+  if (isProtectedPath(pathname)) {
+    if (!token) {
+      return buildRedirect(req.url, '/login');
+    }
+
+    // Optional role checks can be re-enabled later
+    // const required = requiredRolesForPath(pathname);
+    // if (required && token?.admin && typeof token.admin.role === 'number') {
+    //   if (!required.includes(token.admin.role)) {
+    //     return NextResponse.redirect(new URL('/login', req.url));
+    //   }
+    // }
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*'],
+  matcher: ['/dashboard/:path*', '/login'],
 };

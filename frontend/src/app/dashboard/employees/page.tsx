@@ -1,12 +1,18 @@
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { getEmployees } from '@/services/employees';
+import { getServerSession } from 'next-auth';
 
 import { EmployeeListTable, employeeListTableColumns } from './_components/EmployeeListTable';
 
 const EmployesPage = async () => {
-  const response = await getEmployees({
-    cache: true,
-    tags: ['employees'],
-  });
+  const session = await getServerSession(authOptions);
+  const response = await getEmployees(
+    { accessToken: (session as typeof session & { accessToken?: string })?.accessToken },
+    {
+      cache: true,
+      tags: ['employees'],
+    },
+  );
 
   if (!response) return;
 

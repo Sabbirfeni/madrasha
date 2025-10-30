@@ -1,3 +1,4 @@
+import { AuthSessionProvider } from '@/domain/auth/AuthSessionProvider';
 import '@/style/index.css';
 import type { Metadata } from 'next';
 import { ThemeProvider } from 'next-themes';
@@ -39,7 +40,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <AuthSessionProvider>{children}</AuthSessionProvider>
         </ThemeProvider>
       </body>
     </html>

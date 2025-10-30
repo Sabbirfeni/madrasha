@@ -1,6 +1,10 @@
 'use client';
 
+import { type LoginInput, loginSchema } from '@/domain/auth/schemas';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { AlertCircle, Eye, EyeOff, Lock, Phone } from 'lucide-react';
+import { signIn } from 'next-auth/react';
+import { useForm } from 'react-hook-form';
 import MadrashaLogo from '~/public/images/habrul ummah model madrasa logo.svg';
 
 import type React from 'react';
@@ -16,26 +20,31 @@ import { Label } from '@/components/ui/label';
 
 export function LoginForm() {
   const router = useRouter();
-
   const [error, setError] = useState('');
-  const [password, setPassword] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { phone_number: '', password: '' },
+    mode: 'onSubmit',
+  });
+
+  const handleLogin = async (data: LoginInput) => {
     setError('');
-    setIsLoading(true);
-
-    if (phoneNumber === '+880 1843 676171' && password === '123') {
-      document.cookie = `auth=true`;
+    const result = await signIn('credentials', {
+      redirect: false,
+      phone_number: data.phone_number,
+      password: data.password,
+    });
+    if (result?.ok) {
       router.push('/dashboard/overview');
-    } else {
-      setError('Invalid phone number or password. Please try again.');
+      return;
     }
-
-    setIsLoading(false);
+    setError(result?.error || 'Invalid phone number or password. Please try again.');
   };
 
   return (
@@ -57,7 +66,7 @@ export function LoginForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleLogin} className="space-y-6">
+        <form onSubmit={handleSubmit(handleLogin)} className="space-y-6">
           {error && (
             <div className="flex items-center gap-2 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
               <AlertCircle className="h-4 w-4 flex-shrink-0" />
@@ -75,12 +84,13 @@ export function LoginForm() {
                 id="phone"
                 type="tel"
                 placeholder="Enter your phone number"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
+                {...register('phone_number')}
                 className="pl-10 h-12 bg-input border-border focus:ring-2 focus:ring-ring focus:border-transparent"
-                required
-                disabled={isLoading}
+                disabled={isSubmitting}
               />
+              {errors.phone_number && (
+                <p className="mt-1 text-xs text-destructive">{errors.phone_number.message}</p>
+              )}
             </div>
           </div>
 
@@ -94,11 +104,9 @@ export function LoginForm() {
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                {...register('password')}
                 className="pl-10 pr-10 h-12 bg-input border-border focus:ring-2 focus:ring-ring focus:border-transparent"
-                required
-                disabled={isLoading}
+                disabled={isSubmitting}
               />
               <Button
                 type="button"
@@ -106,7 +114,7 @@ export function LoginForm() {
                 size="sm"
                 className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                 onClick={() => setShowPassword(!showPassword)}
-                disabled={isLoading}
+                disabled={isSubmitting}
               >
                 {showPassword ? (
                   <EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -115,15 +123,18 @@ export function LoginForm() {
                 )}
                 <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
               </Button>
+              {errors.password && (
+                <p className="mt-1 text-xs text-destructive">{errors.password.message}</p>
+              )}
             </div>
           </div>
 
           <Button
             type="submit"
             className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base transition-colors dark:text-white"
-            disabled={isLoading}
+            disabled={isSubmitting}
           >
-            {isLoading ? 'Logging in...' : 'Login'}
+            {isSubmitting ? 'Logging in...' : 'Login'}
           </Button>
 
           <div className="text-center">
@@ -131,7 +142,7 @@ export function LoginForm() {
               type="button"
               variant="link"
               className="text-primary hover:text-primary/80 text-sm"
-              disabled={isLoading}
+              disabled={isSubmitting}
             >
               Forgot your password?
             </Button>

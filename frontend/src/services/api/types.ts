@@ -22,6 +22,7 @@ type FetchOptions = {
   query?: Record<string, string | number | boolean | undefined>;
   params?: Record<string, string | number>;
   cache?: RequestCache;
+  accessToken?: string;
 };
 
 type PaginationResult<T> = {
