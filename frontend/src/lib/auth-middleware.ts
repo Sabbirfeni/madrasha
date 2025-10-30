@@ -8,6 +8,7 @@ type ProtectedRoute = {
 // Central list of protected areas and their default post-login destinations
 export const PROTECTED_ROUTES: ProtectedRoute[] = [
   { base: '/dashboard', defaultRedirect: '/dashboard/overview' },
+  { base: '/dashboard/employees', defaultRedirect: '/dashboard/employees' },
   // Add more: { base: '/admin', defaultRedirect: '/admin/home' }
 ];
 
@@ -39,4 +40,28 @@ export const requiredRolesForPath = (_pathname: string): number[] | undefined =>
 export const getDefaultAuthedRedirect = (): string => {
   const first = PROTECTED_ROUTES[0];
   return first?.defaultRedirect ?? first?.base ?? '/';
+};
+
+// Decode a JWT and check its exp claim using base64url decoding
+export const isJwtExpired = (jwt: string | undefined | null): boolean => {
+  if (!jwt || typeof jwt !== 'string') return true;
+  const parts = jwt.split('.');
+  if (parts.length < 2) return true;
+  try {
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    // Use atob in Edge runtime; fall back to Buffer in Node.
+    const decoded =
+      typeof atob === 'function'
+        ? atob(base64)
+        : (globalThis as unknown as { Buffer?: typeof Buffer }).Buffer
+          ? Buffer.from(base64, 'base64').toString('utf8')
+          : '';
+    if (!decoded) return true;
+    const payload = JSON.parse(decoded) as { exp?: number };
+    const exp = typeof payload.exp === 'number' ? payload.exp : 0;
+    if (exp === 0) return false; // no exp means treat as non-expiring token
+    return exp * 1000 <= Date.now();
+  } catch {
+    return true;
+  }
 };
