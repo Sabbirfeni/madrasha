@@ -1,5 +1,3 @@
-export type { Employee } from '@/domain/employees/types';
-
 export type CreateEmployeeInput = {
   branch: number;
   employment_type: number;

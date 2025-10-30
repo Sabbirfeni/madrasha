@@ -11,6 +11,9 @@ type AdminListItem = {
   phone_number: string;
   role: number;
   createdAt: string;
+  access_boys_section: boolean;
+  access_girls_section: boolean;
+  access_residential_section: boolean;
 };
 
 const getAdmins = async (fetchOptions?: FetchOptions, cacheConfig?: CacheConfig) => {

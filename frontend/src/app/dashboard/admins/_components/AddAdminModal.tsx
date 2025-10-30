@@ -1,9 +1,18 @@
 'use client';
 
+import { AdminRole } from '@/domain/admins';
+import { getErrorMessage } from '@/lib/rtk-utils';
+import { useCreateAdminMutation } from '@/services/rtk/adminsApi';
+import { useLazyGetEmployeesQuery } from '@/services/rtk/employeesApi';
+import type { SerializedError } from '@reduxjs/toolkit';
+import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import { User } from 'lucide-react';
+import { toast } from 'sonner';
 
 import type React from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+
+import { useRouter } from 'next/navigation';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -24,15 +33,22 @@ interface AddAdminModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-// Mock employee data for the dropdown
-const employees = [
-  { id: '1', name: 'John Smith', avatar: '/professional-man.png' },
-  { id: '2', name: 'Sarah Johnson', avatar: '/professional-woman-diverse.png' },
-  { id: '3', name: 'Michael Brown', avatar: '/professional-man-glasses.png' },
-  { id: '4', name: 'Emily Davis', avatar: '/professional-woman-short-hair.png' },
-];
+// Fetch real employees via RTK Query
 
 export function AddAdminModal({ open, onOpenChange }: AddAdminModalProps) {
+  const router = useRouter();
+
+  const [
+    triggerEmployees,
+    { data: employees = [], isFetching: isEmployeesLoading, isError: isEmployeesError },
+  ] = useLazyGetEmployeesQuery();
+  useEffect(() => {
+    if (open) {
+      triggerEmployees({}, true);
+    }
+  }, [open, triggerEmployees]);
+  const [createAdmin, { isLoading: isCreating, error: createError }] = useCreateAdminMutation();
+  console.log('createError', createError);
   const [selectedEmployee, setSelectedEmployee] = useState<string>('');
   const [permissions, setPermissions] = useState({
     is_access_boys_section: false,
@@ -40,7 +56,7 @@ export function AddAdminModal({ open, onOpenChange }: AddAdminModalProps) {
     is_access_residential_section: false,
   });
 
-  const selectedEmployeeData = employees.find((emp) => emp.id === selectedEmployee);
+  const selectedEmployeeData = employees.find((emp) => emp._id === selectedEmployee);
 
   const handlePermissionChange = (permission: keyof typeof permissions) => {
     setPermissions((prev) => ({
@@ -49,8 +65,31 @@ export function AddAdminModal({ open, onOpenChange }: AddAdminModalProps) {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedEmployee) return;
+    try {
+      await createAdmin({
+        employee_id: selectedEmployee,
+        role: AdminRole.ADMIN,
+        access_boys_section: permissions.is_access_boys_section,
+        access_girls_section: permissions.is_access_girls_section,
+        access_residential_section: permissions.is_access_residential_section,
+      }).unwrap();
+
+      toast.success('Admin created successfully');
+
+      onOpenChange(false);
+      setSelectedEmployee('');
+      setPermissions({
+        is_access_boys_section: false,
+        is_access_girls_section: false,
+        is_access_residential_section: false,
+      });
+      router.refresh();
+    } catch (err) {
+      toast.error(getErrorMessage(err as FetchBaseQueryError | SerializedError | undefined));
+    }
   };
 
   return (
@@ -66,22 +105,21 @@ export function AddAdminModal({ open, onOpenChange }: AddAdminModalProps) {
             <Label htmlFor="employee">Select Employee</Label>
             <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
               <SelectTrigger>
-                <SelectValue placeholder="Choose an employee..." />
+                <SelectValue
+                  placeholder={isEmployeesLoading ? 'Loading...' : 'Choose an employee...'}
+                />
               </SelectTrigger>
               <SelectContent>
                 {employees.map((employee) => (
-                  <SelectItem key={employee.id} value={employee.id}>
+                  <SelectItem key={employee._id} value={employee._id}>
                     <div className="flex items-center gap-2">
                       <Avatar className="h-6 w-6">
-                        <AvatarImage
-                          src={employee.avatar || '/placeholder.svg'}
-                          alt={employee.name}
-                        />
+                        <AvatarImage src={'/placeholder.svg'} alt={employee.fullname} />
                         <AvatarFallback>
                           <User className="h-3 w-3" />
                         </AvatarFallback>
                       </Avatar>
-                      {employee.name}
+                      <span className="truncate">{employee.fullname}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -95,10 +133,7 @@ export function AddAdminModal({ open, onOpenChange }: AddAdminModalProps) {
               {/* Employee Profile Picture */}
               <div className="flex justify-center">
                 <Avatar className="h-20 w-20">
-                  <AvatarImage
-                    src={selectedEmployeeData.avatar || '/placeholder.svg'}
-                    alt={selectedEmployeeData.name}
-                  />
+                  <AvatarImage src={'/placeholder.svg'} alt={selectedEmployeeData.fullname} />
                   <AvatarFallback className="text-lg">
                     <User className="h-8 w-8" />
                   </AvatarFallback>
@@ -110,7 +145,7 @@ export function AddAdminModal({ open, onOpenChange }: AddAdminModalProps) {
                 <Label htmlFor="fullname">Full Name</Label>
                 <Input
                   id="fullname"
-                  value={selectedEmployeeData.name}
+                  value={selectedEmployeeData.fullname}
                   readOnly
                   className="bg-background"
                   disabled
@@ -122,8 +157,8 @@ export function AddAdminModal({ open, onOpenChange }: AddAdminModalProps) {
                 <Label htmlFor="phone">Phone Number</Label>
                 <Input
                   id="phone"
-                  placeholder="Enter phone number"
-                  value="+880 1843 676171"
+                  placeholder="Phone number"
+                  value={selectedEmployeeData.phone_number ?? ''}
                   type="tel"
                   disabled
                 />
@@ -174,9 +209,19 @@ export function AddAdminModal({ open, onOpenChange }: AddAdminModalProps) {
                 </div>
               </div>
 
-              {/* Submit Button */}
-              <Button type="submit" className="w-full">
-                Add Admin
+              {/* Error + Submit */}
+              {isEmployeesError && (
+                <p className="text-sm text-destructive">Failed to load employees.</p>
+              )}
+              {createError && (
+                <p className="text-sm text-destructive">{getErrorMessage(createError)}</p>
+              )}
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isCreating || isEmployeesLoading || !selectedEmployee}
+              >
+                {isCreating ? 'Adding...' : 'Add Admin'}
               </Button>
             </div>
           )}

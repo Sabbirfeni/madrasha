@@ -1,7 +1,7 @@
 'use client';
 
 import type React from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 import { Admin } from './AdminListTable';
+
+type AdminWithPermissions = Admin & {
+  access_boys_section?: boolean;
+  access_girls_section?: boolean;
+  access_residential_section?: boolean;
+  is_access_boys_section?: boolean;
+  is_access_girls_section?: boolean;
+  is_access_residential_section?: boolean;
+};
 
 interface EditAdminModalProps {
   open: boolean;
@@ -24,6 +33,18 @@ export function EditAdminModal({ open, onOpenChange, admin }: EditAdminModalProp
     is_access_girls_section: false,
     is_access_residential_section: false,
   });
+
+  useEffect(() => {
+    if (!admin || !open) return;
+    const a = admin as AdminWithPermissions;
+    setPermissions({
+      is_access_boys_section: Boolean(a.access_boys_section ?? a.is_access_boys_section),
+      is_access_girls_section: Boolean(a.access_girls_section ?? a.is_access_girls_section),
+      is_access_residential_section: Boolean(
+        a.access_residential_section ?? a.is_access_residential_section,
+      ),
+    });
+  }, [admin, open]);
 
   const handlePermissionChange = (permission: keyof typeof permissions) => {
     setPermissions((prev) => ({

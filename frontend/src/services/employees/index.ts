@@ -1,3 +1,4 @@
+import type { Employee } from '@/domain/employees';
 import {
   type CacheConfig,
   type FetchOptions,
@@ -6,7 +7,7 @@ import {
   serverGet,
 } from '@/services/api';
 
-import type { CreateEmployeeInput, Employee } from './types';
+import type { CreateEmployeeInput } from './types';
 
 const getEmployees = async (fetchOptions?: FetchOptions, cacheConfig?: CacheConfig) => {
   console.log('getEmployees');
