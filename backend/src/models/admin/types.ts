@@ -19,3 +19,11 @@ export type CreateAdminInput = {
   access_girls_section: boolean;
   access_residential_section: boolean;
 };
+
+export type AdminListItem = {
+  _id: string;
+  fullname: string;
+  phone_number: string;
+  role: UserRole;
+  createdAt: Date;
+};
