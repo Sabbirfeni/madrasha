@@ -1,5 +1,9 @@
 'use client';
 
+import { getErrorMessage } from '@/lib/rtk-utils';
+import { useDeleteAdminMutation } from '@/services/rtk/adminsApi';
+import type { SerializedError } from '@reduxjs/toolkit';
+import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -10,8 +14,11 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { MoreHorizontal, Plus } from 'lucide-react';
+import { toast } from 'sonner';
 
 import * as React from 'react';
+
+import { useRouter } from 'next/navigation';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -65,6 +72,8 @@ export function AdminListTable<TData, TValue>({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
   const [selectedAdmin, setSelectedAdmin] = React.useState<Admin | null>(null);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [deleteAdmin] = useDeleteAdminMutation();
+  const router = useRouter();
 
   const handleEditAdmin = (admin: Admin) => {
     setSelectedAdmin(admin);
@@ -76,10 +85,16 @@ export function AdminListTable<TData, TValue>({
     setIsDeleteModalOpen(true);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleDeleteConfirm = (admin: Admin) => {
-    setIsDeleteModalOpen(false);
-    setSelectedAdmin(null);
+  const handleDeleteConfirm = async (admin: Admin) => {
+    try {
+      await deleteAdmin(admin.id).unwrap();
+      toast.success('Admin deleted successfully');
+      setIsDeleteModalOpen(false);
+      setSelectedAdmin(null);
+      router.refresh();
+    } catch (error) {
+      toast.error(getErrorMessage(error as FetchBaseQueryError | SerializedError | undefined));
+    }
   };
 
   const updatedColumns = React.useMemo(() => {
@@ -275,7 +290,12 @@ export function AdminListTable<TData, TValue>({
 
       <EditAdminModal
         open={isEditModalOpen}
-        onOpenChange={setIsEditModalOpen}
+        onOpenChange={(open) => {
+          setIsEditModalOpen(open);
+          if (!open) {
+            setSelectedAdmin(null);
+          }
+        }}
         admin={selectedAdmin}
       />
       <DeleteAdminModal

@@ -3,9 +3,12 @@ import { HttpStatus, PAGINATION_DEFAULTS } from "../config/constants";
 import { ApiResponse, PaginationResult } from "../types/common";
 import { AppError } from "../utils/AppError";
 import { Employee } from "../models/employee/employee.model";
+import mongoose from "mongoose";
 import type {
   CreateEmployeeInput,
+  UpdateEmployeeInput,
   EmployeeListItem,
+  EmployeeDetails,
 } from "../models/employee/types";
 
 export const createEmployee = async (
@@ -104,6 +107,112 @@ export const getEmployees = async (
     success: true,
     message: "Employees retrieved successfully",
     data: paginationResult,
+    timestamp: new Date().toISOString(),
+  };
+
+  res.status(HttpStatus.OK).json(response);
+};
+
+export const getEmployeeById = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new AppError("Invalid employee ID format", HttpStatus.BAD_REQUEST);
+  }
+
+  const employee = await Employee.findById(id).lean();
+
+  if (!employee) {
+    throw new AppError("Employee not found", HttpStatus.NOT_FOUND);
+  }
+
+  const response: ApiResponse<EmployeeDetails> = {
+    success: true,
+    message: "Employee retrieved successfully",
+    data: employee as unknown as EmployeeDetails,
+    timestamp: new Date().toISOString(),
+  };
+
+  res.status(HttpStatus.OK).json(response);
+};
+
+export const updateEmployee = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { id } = req.params as { id: string };
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new AppError("Invalid employee ID format", HttpStatus.BAD_REQUEST);
+  }
+
+  const updateData: Partial<UpdateEmployeeInput> = req.body;
+
+  // If phone number is being updated, check if it already exists
+  if (updateData.phone_number) {
+    const existingEmployee = await Employee.findOne({
+      phone_number: updateData.phone_number,
+      _id: { $ne: id },
+    });
+    if (existingEmployee) {
+      throw new AppError(
+        "Employee with this phone number already exists",
+        HttpStatus.CONFLICT
+      );
+    }
+  }
+
+  // Prepare the update object, handling date conversions
+  const updateObject: Record<string, unknown> = {};
+
+  if (updateData.branch !== undefined) updateObject.branch = updateData.branch;
+  if (updateData.employment_type !== undefined)
+    updateObject.employment_type = updateData.employment_type;
+  if (updateData.designation !== undefined)
+    updateObject.designation = updateData.designation;
+  if (updateData.fullname !== undefined)
+    updateObject.fullname = updateData.fullname;
+  if (updateData.profile_image !== undefined)
+    updateObject.profile_image = updateData.profile_image;
+  if (updateData.nid_no !== undefined) updateObject.nid_no = updateData.nid_no;
+  if (updateData.gender !== undefined) updateObject.gender = updateData.gender;
+  if (updateData.phone_number !== undefined)
+    updateObject.phone_number = updateData.phone_number;
+  if (updateData.salary !== undefined) updateObject.salary = updateData.salary;
+  if (updateData.bonus !== undefined) updateObject.bonus = updateData.bonus;
+  if (updateData.current_location !== undefined)
+    updateObject.current_location = updateData.current_location;
+  if (updateData.permanent_location !== undefined)
+    updateObject.permanent_location = updateData.permanent_location;
+
+  // Handle date conversions
+  if (updateData.join_date !== undefined) {
+    updateObject.join_date = new Date(updateData.join_date);
+  }
+  if (updateData.resign_date !== undefined) {
+    updateObject.resign_date = updateData.resign_date
+      ? new Date(updateData.resign_date)
+      : undefined;
+  }
+
+  const updated = await Employee.findByIdAndUpdate(
+    id,
+    {
+      $set: updateObject,
+    },
+    { new: true }
+  );
+
+  if (!updated) {
+    throw new AppError("Employee not found", HttpStatus.NOT_FOUND);
+  }
+
+  const response: ApiResponse = {
+    success: true,
+    message: "Employee updated successfully",
     timestamp: new Date().toISOString(),
   };
 

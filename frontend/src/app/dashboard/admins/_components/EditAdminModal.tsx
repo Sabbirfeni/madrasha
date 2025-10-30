@@ -1,7 +1,12 @@
 'use client';
 
+import { useUpdateAdminMutation } from '@/services/rtk/adminsApi';
+import { toast } from 'sonner';
+
 import type React from 'react';
 import { useEffect, useState } from 'react';
+
+import { useRouter } from 'next/navigation';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -28,6 +33,8 @@ interface EditAdminModalProps {
 }
 
 export function EditAdminModal({ open, onOpenChange, admin }: EditAdminModalProps) {
+  const router = useRouter();
+  const [updateAdmin, { isLoading }] = useUpdateAdminMutation();
   const [permissions, setPermissions] = useState({
     is_access_boys_section: false,
     is_access_girls_section: false,
@@ -53,8 +60,24 @@ export function EditAdminModal({ open, onOpenChange, admin }: EditAdminModalProp
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!admin) return;
+    try {
+      await updateAdmin({
+        id: admin.id,
+        body: {
+          access_boys_section: permissions.is_access_boys_section,
+          access_girls_section: permissions.is_access_girls_section,
+          access_residential_section: permissions.is_access_residential_section,
+        },
+      }).unwrap();
+      router.refresh();
+      toast.success('Admin updated successfully');
+      onOpenChange(false);
+    } catch {
+      toast.error('Failed to update admin');
+    }
   };
 
   if (!admin) return null;
@@ -146,7 +169,7 @@ export function EditAdminModal({ open, onOpenChange, admin }: EditAdminModalProp
             </div>
 
             {/* Submit Button */}
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full" disabled={isLoading}>
               Update Admin
             </Button>
           </div>
