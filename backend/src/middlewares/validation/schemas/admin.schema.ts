@@ -15,3 +15,15 @@ export const createAdminSchema = z.object({
     errorMap: () => ({ message: "Access residential section must be boolean" }),
   }),
 });
+
+export const updateAdminSchema = z.object({
+  access_boys_section: z.boolean({
+    errorMap: () => ({ message: "Access boys section must be boolean" }),
+  }),
+  access_girls_section: z.boolean({
+    errorMap: () => ({ message: "Access girls section must be boolean" }),
+  }),
+  access_residential_section: z.boolean({
+    errorMap: () => ({ message: "Access residential section must be boolean" }),
+  }),
+});

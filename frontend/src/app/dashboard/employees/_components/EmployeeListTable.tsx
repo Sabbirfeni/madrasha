@@ -1,5 +1,6 @@
 'use client';
 
+import { Branch, toBranchLabel } from '@/domain/branches';
 import {
   type Employee,
   EmployeeType,
@@ -53,7 +54,7 @@ export function EmployeeListTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
   const [nameSearch, setNameSearch] = React.useState<string>('');
-  const [branchFilter, setBranchFilter] = React.useState<string>('');
+  const [branchFilter, setBranchFilter] = React.useState<number | ''>('');
   const [employmentTypeFilter, setEmploymentTypeFilter] = React.useState<number | ''>('');
 
   const filteredData = React.useMemo(() => {
@@ -65,7 +66,7 @@ export function EmployeeListTable<TData, TValue>({
       );
     }
 
-    if (branchFilter) {
+    if (branchFilter !== '') {
       filtered = filtered.filter((employee) => employee.branch === branchFilter);
     }
 
@@ -114,25 +115,29 @@ export function EmployeeListTable<TData, TValue>({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="h-9 px-3 bg-transparent">
-                {branchFilter || 'Branch'}
+                {branchFilter === '' ? 'Branch' : toBranchLabel(branchFilter)}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuCheckboxItem
-                checked={!branchFilter}
+                checked={branchFilter === ''}
                 onCheckedChange={() => setBranchFilter('')}
               >
                 All Branches
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={branchFilter === 'Boys'}
-                onCheckedChange={() => setBranchFilter(branchFilter === 'Boys' ? '' : 'Boys')}
+                checked={branchFilter === Branch.BOYS}
+                onCheckedChange={() =>
+                  setBranchFilter(branchFilter === Branch.BOYS ? '' : Branch.BOYS)
+                }
               >
                 Boys
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={branchFilter === 'Girls'}
-                onCheckedChange={() => setBranchFilter(branchFilter === 'Girls' ? '' : 'Girls')}
+                checked={branchFilter === Branch.GIRLS}
+                onCheckedChange={() =>
+                  setBranchFilter(branchFilter === Branch.GIRLS ? '' : Branch.GIRLS)
+                }
               >
                 Girls
               </DropdownMenuCheckboxItem>

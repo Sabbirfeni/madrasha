@@ -130,3 +130,73 @@ export const getAdmins = async (req: Request, res: Response): Promise<void> => {
   console.log("paginationResult", paginationResult);
   res.status(HttpStatus.OK).json(response);
 };
+
+export const updateAdmin = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { id } = req.params as { id: string };
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new AppError("Invalid admin ID format", HttpStatus.BAD_REQUEST);
+  }
+
+  const {
+    access_boys_section,
+    access_girls_section,
+    access_residential_section,
+  }: {
+    access_boys_section: boolean;
+    access_girls_section: boolean;
+    access_residential_section: boolean;
+  } = req.body;
+
+  const updated = await Admin.findByIdAndUpdate(
+    id,
+    {
+      $set: {
+        access_boys_section,
+        access_girls_section,
+        access_residential_section,
+      },
+    },
+    { new: true }
+  );
+
+  if (!updated) {
+    throw new AppError("Admin not found", HttpStatus.NOT_FOUND);
+  }
+
+  const response: ApiResponse = {
+    success: true,
+    message: "Admin updated successfully",
+    timestamp: new Date().toISOString(),
+  };
+
+  res.status(HttpStatus.OK).json(response);
+};
+
+export const deleteAdmin = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { id } = req.params as { id: string };
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new AppError("Invalid admin ID format", HttpStatus.BAD_REQUEST);
+  }
+
+  const deleted = await Admin.findByIdAndDelete(id);
+
+  if (!deleted) {
+    throw new AppError("Admin not found", HttpStatus.NOT_FOUND);
+  }
+
+  const response: ApiResponse = {
+    success: true,
+    message: "Admin deleted successfully",
+    timestamp: new Date().toISOString(),
+  };
+
+  res.status(HttpStatus.OK).json(response);
+};
