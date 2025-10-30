@@ -1,4 +1,6 @@
 import { AuthSessionProvider } from '@/domain/auth/AuthSessionProvider';
+import { SessionTokenBridge } from '@/domain/auth/SessionTokenBridge';
+import { StoreProvider } from '@/store/providers/StoreProvider';
 import '@/style/index.css';
 import type { Metadata } from 'next';
 import { ThemeProvider } from 'next-themes';
@@ -6,6 +8,8 @@ import { ThemeProvider } from 'next-themes';
 import type React from 'react';
 
 import { Geist, Geist_Mono } from 'next/font/google';
+
+import { ToasterProvider } from '@/components/ToasterProvider';
 
 const geistSans = Geist({
   subsets: ['latin'],
@@ -40,8 +44,14 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthSessionProvider>{children}</AuthSessionProvider>
+          <StoreProvider>
+            <AuthSessionProvider>
+              <SessionTokenBridge />
+              {children}
+            </AuthSessionProvider>
+          </StoreProvider>
         </ThemeProvider>
+        <ToasterProvider />
       </body>
     </html>
   );

@@ -98,6 +98,9 @@ export const getAdmins = async (req: Request, res: Response): Promise<void> => {
           phone_number: "$employee.phone_number",
           role: 1,
           createdAt: 1,
+          access_boys_section: 1,
+          access_girls_section: 1,
+          access_residential_section: 1,
         },
       },
       { $skip: skip },
@@ -124,6 +127,6 @@ export const getAdmins = async (req: Request, res: Response): Promise<void> => {
     data: paginationResult,
     timestamp: new Date().toISOString(),
   };
-
+  console.log("paginationResult", paginationResult);
   res.status(HttpStatus.OK).json(response);
 };

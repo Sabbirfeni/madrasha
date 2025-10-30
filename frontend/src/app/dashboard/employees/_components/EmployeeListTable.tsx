@@ -1,9 +1,12 @@
 'use client';
 
-import { EmployeeType } from '@/domain/employees';
-import { formatDesignation, formatEmployeeType } from '@/domain/employees';
+import {
+  type Employee,
+  EmployeeType,
+  formatDesignation,
+  formatEmployeeType,
+} from '@/domain/employees';
 import { formatDate } from '@/lib/date-utils';
-import { Employee } from '@/services/employees/types';
 import {
   type ColumnDef,
   type ColumnFiltersState,

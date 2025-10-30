@@ -17,6 +17,9 @@ const AdminsListPage = async () => {
     name: a.fullname,
     type: ADMIN_ROLE_LABELS[a.role as AdminRole],
     phone: a.phone_number,
+    access_boys_section: a.access_boys_section,
+    access_girls_section: a.access_girls_section,
+    access_residential_section: a.access_residential_section,
     adminSince: new Date(a.createdAt).toLocaleDateString('en-GB', {
       day: '2-digit',
       month: 'short',
