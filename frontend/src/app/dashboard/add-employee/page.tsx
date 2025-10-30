@@ -1,11 +1,24 @@
 'use client';
 
+import { parseBranchLabel } from '@/domain/branches';
+import {
+  DESIGNATION_BY_EMPLOYEE_TYPE,
+  DESIGNATION_LABELS,
+  Designation,
+  EMPLOYEE_TYPE_LABELS,
+  EmployeeType,
+} from '@/domain/employees';
+import { createEmployee } from '@/services/employees';
+import type { CreateEmployeeInput } from '@/services/employees/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Camera, Save } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useSession } from 'next-auth/react';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { useRef, useState } from 'react';
+
+import { useRouter } from 'next/navigation';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -25,8 +38,8 @@ const employeeFormSchema = z
   .object({
     // General Information
     branch: z.string().min(1, 'Branch is required'),
-    employment_type: z.string().min(1, 'Employment type is required'),
-    designation: z.string().min(1, 'Designation is required'),
+    employment_type: z.number().min(1, 'Employment type is required'),
+    designation: z.number().min(1, 'Designation is required'),
     profile_image: z.string().min(1, 'Profile image is required'),
     fullname: z.string().min(1, 'Full name is required'),
     nid_no: z.string().min(1, 'NID number is required'),
@@ -67,70 +80,14 @@ const employeeFormSchema = z
 
 type EmployeeFormData = z.infer<typeof employeeFormSchema>;
 
-type EmploymentType = {
-  value: string;
-  label: string;
-  designations: string[];
-};
-
-const employmentTypes: EmploymentType[] = [
-  {
-    value: 'Teacher',
-    label: 'Teacher',
-    designations: [
-      'Subject Teachers (Arabic, Quran, Hadith, Fiqh, etc.)',
-      'General Subjects Teachers (Math, English, etc.)',
-      'Hifz Teachers',
-      'Assistant Teachers',
-      "Mu'allim / Mu'allima",
-    ],
-  },
-  {
-    value: 'Management',
-    label: 'Management',
-    designations: [
-      'Principal / Head (Muhtamim)',
-      'Vice Principal / Naib Muhtamim',
-      'Office Administrator',
-      'Accountant',
-    ],
-  },
-  {
-    value: 'Operational Staff',
-    label: 'Operational Staff',
-    designations: [
-      'Librarian',
-      'Lab Assistant (if modern subjects are taught)',
-      'Office Assistant',
-      'Peon',
-      'Driver',
-      'Cook / Kitchen Staff',
-      'Gardener',
-      'Watchman / Guard',
-      'Hostel Matron / Hostel In-charge',
-    ],
-  },
-  {
-    value: 'Residential Staff',
-    label: 'Residential Staff',
-    designations: [
-      'Hostel Matron',
-      'Hostel In-charge',
-      'Residential Supervisor',
-      'Dormitory Manager',
-    ],
-  },
-  {
-    value: 'Technical',
-    label: 'Technical',
-    designations: ['IT Admin', 'Web Admin', 'System Support'],
-  },
-];
-
 export default function AddEmployeePage() {
   const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+
+  const router = useRouter();
+  const { data: session } = useSession();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -147,8 +104,8 @@ export default function AddEmployeePage() {
     mode: 'onSubmit',
     defaultValues: {
       branch: '',
-      employment_type: '',
-      designation: '',
+      employment_type: 0,
+      designation: 0,
       profile_image: '',
       fullname: '',
       nid_no: '',
@@ -165,26 +122,62 @@ export default function AddEmployeePage() {
 
   const watchedValues = watch();
 
-  const onSubmit = async () => {
+  const onSubmit: SubmitHandler<EmployeeFormData> = async (values) => {
     setIsSaving(true);
+    setErrorMessage(null);
+    try {
+      const branchEnum = parseBranchLabel(values.branch);
+      if (branchEnum == null) {
+        throw new Error('Invalid branch selected');
+      }
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+      const payload: CreateEmployeeInput = {
+        branch: branchEnum,
+        employment_type: Number(values.employment_type),
+        designation: Number(values.designation),
+        fullname: values.fullname,
+        profile_image: 'values.profile_image',
+        // profile_image: values.profile_image,
+        nid_no: values.nid_no,
+        gender: values.gender,
+        phone_number: values.phone_number,
+        join_date: values.join_date,
+        resign_date: values.resign_date || undefined,
+        salary: Number(values.salary),
+        bonus: Number(values.bonus) || 0,
+        current_location: values.current_location,
+        permanent_location: values.permanent_location,
+      };
 
-    reset();
-    setIsSaving(false);
-    setImagePreview(null);
-    setHasAttemptedSubmit(false);
+      console.log('payload', payload);
+
+      const { error } = await createEmployee(payload, {
+        accessToken: (session as typeof session & { accessToken?: string })?.accessToken,
+      });
+
+      if (error) {
+        throw new Error(error.statusText || 'Failed to create employee');
+      }
+
+      reset();
+      setImagePreview(null);
+      setHasAttemptedSubmit(false);
+      router.push('/dashboard/employees');
+    } catch (err) {
+      setErrorMessage((err as Error).message || 'Failed to create employee');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleFormSubmit = () => {
     setHasAttemptedSubmit(true);
-    handleSubmit(onSubmit)();
+    (handleSubmit as unknown as (fn: SubmitHandler<EmployeeFormData>) => () => void)(onSubmit)();
   };
 
   const handleEmploymentTypeChange = (employmentType: string) => {
-    setValue('employment_type', employmentType, { shouldValidate: true });
-    // Reset designation when employment type changes
-    setValue('designation', '', { shouldValidate: true });
+    setValue('employment_type', Number(employmentType), { shouldValidate: true });
+    setValue('designation', 0, { shouldValidate: true });
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -208,10 +201,9 @@ export default function AddEmployeePage() {
   const totalSalary = (Number(watchedValues.salary) || 0) + (Number(watchedValues.bonus) || 0);
 
   // Get designations for selected employment type
-  const selectedEmploymentType = employmentTypes.find(
-    (type) => type.value === watchedValues.employment_type,
-  );
-  const availableDesignations = selectedEmploymentType?.designations || [];
+  const availableDesignations = watchedValues.employment_type
+    ? DESIGNATION_BY_EMPLOYEE_TYPE[watchedValues.employment_type as EmployeeType] || []
+    : [];
 
   return (
     <div className="container mx-auto space-y-6">
@@ -252,7 +244,7 @@ export default function AddEmployeePage() {
             <h1 className="text-3xl font-bold">{watchedValues.fullname || 'New Employee'}</h1>
             <p className="text-muted-foreground">
               {watchedValues.employment_type && watchedValues.designation
-                ? `${watchedValues.employment_type} - ${watchedValues.designation}`
+                ? `${EMPLOYEE_TYPE_LABELS[watchedValues.employment_type as EmployeeType]} - ${DESIGNATION_LABELS[watchedValues.designation as Designation]}`
                 : 'Enter employee details'}
             </p>
           </div>
@@ -267,6 +259,15 @@ export default function AddEmployeePage() {
       </div>
 
       {/* Profile Image Required Message */}
+      {errorMessage && (
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardContent>
+            <div className="flex items-center gap-2 text-destructive py-2">
+              <p className="text-sm font-medium">{errorMessage}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       {hasAttemptedSubmit && !imagePreview && !watchedValues.profile_image && (
         <Card className="border-destructive/50 bg-destructive/5">
           <CardContent>
@@ -314,18 +315,24 @@ export default function AddEmployeePage() {
                 Employment Type <span className="text-destructive">*</span>
               </Label>
               <Select
-                value={watchedValues.employment_type}
+                value={
+                  watchedValues.employment_type
+                    ? watchedValues.employment_type.toString()
+                    : undefined
+                }
                 onValueChange={handleEmploymentTypeChange}
               >
                 <SelectTrigger className="bg-muted/40 dark:bg-input/40">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
-                  {employmentTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
+                  {Object.values(EmployeeType)
+                    .filter((v) => typeof v === 'number')
+                    .map((type) => (
+                      <SelectItem key={type} value={type.toString()}>
+                        {EMPLOYEE_TYPE_LABELS[type as EmployeeType]}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
               {hasAttemptedSubmit && errors.employment_type && (
@@ -338,17 +345,19 @@ export default function AddEmployeePage() {
                 Designation <span className="text-destructive">*</span>
               </Label>
               <Select
-                value={watchedValues.designation}
-                onValueChange={(value) => setValue('designation', value, { shouldValidate: true })}
+                value={watchedValues.designation ? watchedValues.designation.toString() : undefined}
+                onValueChange={(value) =>
+                  setValue('designation', Number(value), { shouldValidate: true })
+                }
                 disabled={!watchedValues.employment_type}
               >
                 <SelectTrigger className="bg-muted/40 dark:bg-input/40">
-                  <SelectValue placeholder="Select employment type first" />
+                  <SelectValue placeholder="Select designation" />
                 </SelectTrigger>
                 <SelectContent>
                   {availableDesignations.map((designation) => (
-                    <SelectItem key={designation} value={designation}>
-                      {designation}
+                    <SelectItem key={designation} value={designation.toString()}>
+                      {DESIGNATION_LABELS[designation]}
                     </SelectItem>
                   ))}
                 </SelectContent>

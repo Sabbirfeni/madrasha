@@ -2,10 +2,11 @@ import {
   type CacheConfig,
   type FetchOptions,
   type PaginationResult,
+  publicPost,
   serverGet,
 } from '@/services/api';
 
-import type { Employee } from './types';
+import type { CreateEmployeeInput, Employee } from './types';
 
 const getEmployees = async (fetchOptions?: FetchOptions, cacheConfig?: CacheConfig) => {
   console.log('getEmployees');
@@ -19,3 +20,10 @@ const getEmployees = async (fetchOptions?: FetchOptions, cacheConfig?: CacheConf
 };
 
 export { getEmployees };
+
+const createEmployee = async (body: CreateEmployeeInput, fetchOptions?: FetchOptions) => {
+  const response = await publicPost<unknown>('/employees/add-employee', body, fetchOptions);
+  return response;
+};
+
+export { createEmployee };
