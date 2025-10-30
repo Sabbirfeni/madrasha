@@ -1,12 +1,12 @@
 import { type Request, type Response } from "express";
-import { HttpStatus, UserRole } from "../config/constants";
-import { ApiResponse } from "../types/common";
+import { HttpStatus, PAGINATION_DEFAULTS, UserRole } from "../config/constants";
+import { type ApiResponse, type PaginationResult } from "../types/common";
 import { AppError } from "../utils/AppError";
 import { Admin } from "../models/admin/admin.model";
 import { Employee } from "../models/employee/employee.model";
 import { generateStrongPassword } from "../models/admin/utils";
 import { hashPassword } from "../utils/password";
-import type { CreateAdminInput } from "../models/admin/types";
+import type { CreateAdminInput, AdminListItem } from "../models/admin/types";
 import mongoose from "mongoose";
 
 export const createAdmin = async (
@@ -69,4 +69,61 @@ export const createAdmin = async (
   };
 
   res.status(HttpStatus.CREATED).json(response);
+};
+
+export const getAdmins = async (req: Request, res: Response): Promise<void> => {
+  const page = Math.max(1, Number(req.query.page) || PAGINATION_DEFAULTS.PAGE);
+  const limit = Math.min(
+    Number(req.query.limit) || PAGINATION_DEFAULTS.LIMIT,
+    PAGINATION_DEFAULTS.MAX_LIMIT
+  );
+
+  const skip = (page - 1) * limit;
+
+  const [items, total] = await Promise.all([
+    Admin.aggregate([
+      {
+        $lookup: {
+          from: "employees",
+          localField: "employee_id",
+          foreignField: "_id",
+          as: "employee",
+        },
+      },
+      { $unwind: "$employee" },
+      {
+        $project: {
+          _id: 1,
+          fullname: "$employee.fullname",
+          phone_number: "$employee.phone_number",
+          role: 1,
+          createdAt: 1,
+        },
+      },
+      { $skip: skip },
+      { $limit: limit },
+    ]).exec(),
+    Admin.countDocuments(),
+  ]);
+
+  const pages = Math.ceil(total / limit) || 1;
+
+  const paginationResult: PaginationResult<AdminListItem> = {
+    docs: items as unknown as AdminListItem[],
+    total,
+    page,
+    pages,
+    limit,
+    hasNext: page < pages,
+    hasPrev: page > 1,
+  };
+
+  const response: ApiResponse<PaginationResult<AdminListItem>> = {
+    success: true,
+    message: "Admins retrieved successfully",
+    data: paginationResult,
+    timestamp: new Date().toISOString(),
+  };
+
+  res.status(HttpStatus.OK).json(response);
 };

@@ -42,11 +42,6 @@ const data = {
       icon: LayoutDashboard,
     },
     {
-      title: 'Admins',
-      url: '/dashboard/admins',
-      icon: UserRoundCog,
-    },
-    {
       title: 'Students',
       url: '/dashboard/students',
       icon: SquareUser,
@@ -57,19 +52,24 @@ const data = {
       icon: Users,
     },
     {
-      title: 'Donations',
-      url: '/dashboard/donations',
-      icon: HandCoins,
-    },
-    {
       title: 'Income',
       url: '/dashboard/income',
       icon: CircleDollarSign,
     },
     {
+      title: 'Donations',
+      url: '/dashboard/donations',
+      icon: HandCoins,
+    },
+    {
       title: 'Expenses',
       url: '/dashboard/expenses',
       icon: BanknoteArrowDown,
+    },
+    {
+      title: 'Admins',
+      url: '/dashboard/admins',
+      icon: UserRoundCog,
     },
   ],
 };
