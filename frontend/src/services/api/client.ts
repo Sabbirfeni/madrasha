@@ -54,7 +54,7 @@ const publicPost = async <T, E = unknown>(
 
   const { data, error } = await betterFetch<ApiResponse<T>, Error & E>(url, {
     method: 'POST',
-    body: JSON.stringify(body),
+    body,
     query,
     headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
     ...restOptions,

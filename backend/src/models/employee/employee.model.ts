@@ -21,7 +21,6 @@ const employeeSchema: Schema = new mongoose.Schema(
     },
     profile_image: {
       type: String,
-      maxlength: 255,
     },
     nid_no: {
       type: String,
@@ -61,13 +60,13 @@ const employeeSchema: Schema = new mongoose.Schema(
       type: Number,
       required: true,
       min: 0,
-      max: 9999999999, // 10 digits max
+      max: 9999999999,
     },
     bonus: {
       type: Number,
       default: 0,
       min: 0,
-      max: 9999999999, // 10 digits max
+      max: 9999999999,
     },
     current_location: {
       type: String,

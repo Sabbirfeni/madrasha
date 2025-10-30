@@ -23,8 +23,19 @@ export const createEmployeeSchema = z.object({
   phone_number: z
     .string()
     .regex(/^01\d{9}$/, "Phone number must be 11 digits starting with 01"),
-  join_date: z.string().datetime("Invalid join date format"),
-  resign_date: z.string().datetime("Invalid resign date format").optional(),
+  join_date: z
+    .union([z.string().date(), z.string().datetime()])
+    .refine(
+      (v) => !Number.isNaN(new Date(v as string).getTime()),
+      "Invalid join date format"
+    ),
+  resign_date: z
+    .union([z.string().date(), z.string().datetime()])
+    .refine(
+      (v) => !v || !Number.isNaN(new Date(v as string).getTime()),
+      "Invalid resign date format"
+    )
+    .optional(),
   salary: z
     .number()
     .min(0, "Bonus must be non-negative")

@@ -198,6 +198,27 @@ export const connectDB = async (): Promise<void> => {
 
     // Attempt connection with retry logic
     await connectWithRetry();
+
+    // Global guard: drop legacy unique index `id_1` across all collections (safe no-op if missing)
+    try {
+      const db = mongoose.connection.db!;
+      const collections = await db.listCollections().toArray();
+      await Promise.all(
+        collections.map(async (c) => {
+          try {
+            await db.collection(c.name).dropIndex("id_1");
+          } catch {}
+        })
+      );
+    } catch {}
+
+    // Optional: schema-driven index sync for all registered models
+    if (process.env.DB_SYNC_INDEXES === "true") {
+      const modelNames = mongoose.modelNames();
+      await Promise.all(
+        modelNames.map((name) => mongoose.model(name).syncIndexes())
+      );
+    }
   } catch (error) {
     console.error("💥 Unexpected error during database connection:", error);
     process.exit(1);
