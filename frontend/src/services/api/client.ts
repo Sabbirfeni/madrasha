@@ -19,7 +19,7 @@ type Error = {
 
 const publicGet = async <T, E = unknown>(endpoint: string, fetchOptions?: FetchOptions) => {
   console.log('publicGet', endpoint);
-  const { throw: shouldThrow, query, params, ...restOptions } = fetchOptions || {};
+  const { throw: shouldThrow, query, params, accessToken, ...restOptions } = fetchOptions || {};
 
   let url = endpoint;
   if (params) {
@@ -30,6 +30,7 @@ const publicGet = async <T, E = unknown>(endpoint: string, fetchOptions?: FetchO
 
   const { data, error } = await betterFetch<ApiResponse<T>, Error & E>(url, {
     query,
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
     ...restOptions,
   } as BetterFetchOption);
   if (shouldThrow && error) throw error;
@@ -42,7 +43,7 @@ const publicPost = async <T, E = unknown>(
   body: Record<string, unknown>,
   fetchOptions?: FetchOptions,
 ) => {
-  const { throw: shouldThrow, query, params, ...restOptions } = fetchOptions || {};
+  const { throw: shouldThrow, query, params, accessToken, ...restOptions } = fetchOptions || {};
 
   let url = endpoint;
   if (params) {
@@ -55,6 +56,7 @@ const publicPost = async <T, E = unknown>(
     method: 'POST',
     body: JSON.stringify(body),
     query,
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
     ...restOptions,
   } as BetterFetchOption);
   if (shouldThrow && error) throw error;
