@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-import type { Expense } from './ExpenseListTable';
+import { Expense } from '../expenses';
 
 const expenseSchema = z.object({
   branch: z
