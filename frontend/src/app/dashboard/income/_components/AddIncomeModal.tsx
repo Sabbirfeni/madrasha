@@ -148,7 +148,9 @@ export function AddIncomeModal({ open, onOpenChange }: AddIncomeModalProps) {
                     <SelectContent>
                       <SelectItem value="Admission Fee">Admission Fee</SelectItem>
                       <SelectItem value="Session Fee">Session Fee</SelectItem>
-                      <SelectItem value="Students' Monthly Fee">Students' Monthly Fee</SelectItem>
+                      <SelectItem value="Students' Monthly Fee">
+                        Students&rsquo; Monthly Fee
+                      </SelectItem>
                       <SelectItem value="Canteen">Canteen</SelectItem>
                       <SelectItem value="Others">Others</SelectItem>
                     </SelectContent>

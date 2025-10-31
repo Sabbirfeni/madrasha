@@ -31,31 +31,18 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
+import type { Expense } from '../expenses';
 import { AddExpenseModal } from './AddExpenseModal';
 import { EditExpenseModal } from './EditExpenseModal';
 
-export type Expense = {
-  id: string;
-  branch: 'Boys' | 'Girls';
-  type: 'Salary' | 'Food' | 'Utility';
-  note: string;
-  addedBy: string;
-  date: string;
-  amount: number;
-};
-
-interface ExpenseListTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
+type ExpenseListTableProps = {
+  columns: ColumnDef<Expense, unknown>[];
+  data: Expense[];
   title?: string;
   description?: string;
-}
+};
 
-export function ExpenseListTable<TData, TValue>({
-  columns,
-  data,
-  title = 'Expenses',
-}: ExpenseListTableProps<TData, TValue>) {
+export function ExpenseListTable({ columns, data, title = 'Expenses' }: ExpenseListTableProps) {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
   const [selectedExpense, setSelectedExpense] = React.useState<Expense | null>(null);
@@ -74,7 +61,7 @@ export function ExpenseListTable<TData, TValue>({
   };
 
   const filteredData = React.useMemo(() => {
-    let filtered = data as Expense[];
+    let filtered = data;
 
     if (noteSearch) {
       filtered = filtered.filter((expense) =>
@@ -105,17 +92,16 @@ export function ExpenseListTable<TData, TValue>({
       });
     }
 
-    return filtered as TData[];
+    return filtered;
   }, [data, noteSearch, branchFilter, typeFilter, monthFilter, yearFilter]);
 
   // Calculate total amount from filtered data
   const totalAmount = React.useMemo(() => {
-    const filteredExpenses = filteredData as Expense[];
-    return filteredExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+    return filteredData.reduce((sum, expense) => sum + expense.amount, 0);
   }, [filteredData]);
 
-  const updatedColumns = React.useMemo(() => {
-    return columns.map((column) => {
+  const updatedColumns = React.useMemo<ColumnDef<Expense, unknown>[]>(() => {
+    return columns.map((column): ColumnDef<Expense, unknown> => {
       if (column.id === 'actions') {
         return {
           ...column,
