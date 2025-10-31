@@ -48,13 +48,10 @@ export enum Branch {
 
 // Donation types
 export enum DonationType {
-  MONTHLY = "monthly",
-  YEARLY = "yearly",
-  SPECIAL = "special",
-  EMERGENCY = "emergency",
-  ZAKAT = "zakat",
-  SADAQAH = "sadaqah",
-  WAQF = "waqf",
+  SADAQAH = 1,
+  ZAKAT = 2,
+  MEMBERSHIP = 3,
+  OTHERS = 4,
 }
 
 // Income types

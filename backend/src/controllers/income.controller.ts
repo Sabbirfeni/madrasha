@@ -29,6 +29,14 @@ export const getIncomes = async (
       .select(
         "_id branch type amount income_date notes admin_id createdAt updatedAt"
       )
+      .populate({
+        path: "admin_id",
+        select: "employee_id",
+        populate: {
+          path: "employee_id",
+          select: "fullname",
+        },
+      })
       .limit(limit)
       .skip(skip)
       .sort({ income_date: -1 })

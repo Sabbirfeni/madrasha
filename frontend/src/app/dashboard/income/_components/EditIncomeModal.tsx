@@ -5,7 +5,9 @@ import { INCOME_TYPE_LABELS } from '@/domain/income';
 import { updateIncome } from '@/services/income';
 import type { Income } from '@/services/income/types';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useSession } from 'next-auth/react';
 import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { z } from 'zod';
 
 import type React from 'react';
@@ -47,6 +49,7 @@ interface EditIncomeModalProps {
 export function EditIncomeModal({ open, onOpenChange, income }: EditIncomeModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+  const { data: session } = useSession();
 
   const {
     register,
@@ -82,12 +85,20 @@ export function EditIncomeModal({ open, onOpenChange, income }: EditIncomeModalP
 
     setIsSubmitting(true);
     try {
-      await updateIncome(income._id, data);
+      const { error } = await updateIncome(income._id, data, {
+        accessToken: (session as typeof session & { accessToken?: string })?.accessToken,
+      });
 
+      if (error) {
+        throw new Error(error.statusText || 'Failed to update income');
+      }
+
+      toast.success('Income updated successfully');
       onOpenChange(false);
       router.refresh();
     } catch (error) {
       console.error('Error updating income:', error);
+      toast.error('Failed to update income');
     } finally {
       setIsSubmitting(false);
     }
@@ -118,11 +129,11 @@ export function EditIncomeModal({ open, onOpenChange, income }: EditIncomeModalP
                 control={control}
                 render={({ field }) => (
                   <Select
-                    value={field.value?.toString()}
+                    value={field.value && field.value !== 0 ? field.value.toString() : undefined}
                     onValueChange={(val) => field.onChange(Number.parseInt(val))}
                   >
                     <SelectTrigger className={errors.branch ? 'border-red-500' : ''}>
-                      <SelectValue placeholder="Select branch" />
+                      <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent>
                       {Object.entries(BRANCH_LABELS).map(([value, label]) => (
@@ -145,11 +156,11 @@ export function EditIncomeModal({ open, onOpenChange, income }: EditIncomeModalP
                 control={control}
                 render={({ field }) => (
                   <Select
-                    value={field.value?.toString()}
+                    value={field.value && field.value !== 0 ? field.value.toString() : undefined}
                     onValueChange={(val) => field.onChange(Number.parseInt(val))}
                   >
                     <SelectTrigger className={errors.type ? 'border-red-500' : ''}>
-                      <SelectValue placeholder="Select income type" />
+                      <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent>
                       {Object.entries(INCOME_TYPE_LABELS).map(([value, label]) => (

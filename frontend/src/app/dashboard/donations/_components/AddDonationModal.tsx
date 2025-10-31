@@ -1,12 +1,18 @@
 'use client';
 
+import { DONATION_TYPE_REVERSE_MAP, type DonationTypeLabel } from '@/domain/donations/constants';
 import { getTodayDate } from '@/lib/date-utils';
+import { createDonation } from '@/services/donation';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { z } from 'zod';
 
 import type React from 'react';
 import { useState } from 'react';
+
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -20,29 +26,24 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-import { type DonationType, donationTypeOptions } from '../donations';
+const donationTypeOptions: DonationTypeLabel[] = ['Sadaqah', 'Zakat', 'Membership', 'Others'];
 
 // Zod validation schema
 const donationSchema = z.object({
-  donorName: z.string().min(1, 'Donor name is required'),
-  phoneNumber: z.string().min(1, 'Phone number is required'),
-  type: z
+  fullname: z.string().min(1, 'Donor name is required').max(100, 'Name too long'),
+  phone_number: z.string().min(1, 'Phone number is required').max(15, 'Phone number too long'),
+  donation_type: z
     .string()
     .min(1, 'Please select a donation type')
-    .refine((val) => donationTypeOptions.includes(val as DonationType), {
+    .refine((val) => donationTypeOptions.includes(val as DonationTypeLabel), {
       message: 'Please select a valid donation type',
     }),
-  branch: z
-    .string()
-    .min(1, 'Please select a branch')
-    .refine((val) => ['Boys', 'Girls'].includes(val), {
-      message: 'Please select a valid branch',
-    }),
-  date: z.string().min(1, 'Date is required'),
-  amount: z
+  donation_date: z.string().min(1, 'Date is required'),
+  donation_amount: z
     .number()
     .min(1, 'Amount must be greater than 0')
     .refine((val) => val > 0, 'Amount cannot be 0 or empty'),
+  notes: z.string().max(255, 'Notes too long').optional(),
 });
 
 type DonationFormData = z.infer<typeof donationSchema>;
@@ -54,6 +55,8 @@ interface AddDonationModalProps {
 
 export function AddDonationModal({ open, onOpenChange }: AddDonationModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
+  const { data: session } = useSession();
 
   const {
     register,
@@ -66,30 +69,43 @@ export function AddDonationModal({ open, onOpenChange }: AddDonationModalProps) 
   } = useForm<DonationFormData>({
     resolver: zodResolver(donationSchema),
     defaultValues: {
-      donorName: '',
-      phoneNumber: '',
-      type: '',
-      branch: '',
-      date: getTodayDate(), // Today's date in YYYY-MM-DD format
-      amount: 0,
+      fullname: '',
+      phone_number: '',
+      donation_type: '',
+      donation_date: getTodayDate(),
+      donation_amount: 0,
+      notes: '',
     },
   });
 
-  const watchedType = watch('type');
-  const watchedBranch = watch('branch');
+  const watchedType = watch('donation_type');
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const onSubmit = async (data: DonationFormData) => {
     setIsSubmitting(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const donationTypeValue = DONATION_TYPE_REVERSE_MAP[data.donation_type as DonationTypeLabel];
 
-      // Reset form and close modal
+      await createDonation(
+        {
+          fullname: data.fullname,
+          phone_number: data.phone_number,
+          donation_type: donationTypeValue,
+          donation_amount: data.donation_amount,
+          donation_date: data.donation_date,
+          notes: data.notes || undefined,
+        },
+        {
+          accessToken: (session as typeof session & { accessToken?: string })?.accessToken,
+        },
+      );
+
+      toast.success('Donation added successfully');
       reset();
       onOpenChange(false);
+      router.refresh();
     } catch (error) {
       console.error('Error adding donation:', error);
+      toast.error('Failed to add donation');
     } finally {
       setIsSubmitting(false);
     }
@@ -110,39 +126,39 @@ export function AddDonationModal({ open, onOpenChange }: AddDonationModalProps) 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Donor Name */}
           <div className="space-y-2">
-            <Label htmlFor="donorName">Donor Name</Label>
+            <Label htmlFor="fullname">Donor Name</Label>
             <Input
-              id="donorName"
+              id="fullname"
               placeholder="Enter donor name"
-              {...register('donorName')}
-              className={errors.donorName ? 'border-red-500' : ''}
+              {...register('fullname')}
+              className={errors.fullname ? 'border-red-500' : ''}
             />
-            {errors.donorName && <p className="text-sm text-red-500">{errors.donorName.message}</p>}
+            {errors.fullname && <p className="text-sm text-red-500">{errors.fullname.message}</p>}
           </div>
           {/* Phone Number */}
           <div className="space-y-2">
-            <Label htmlFor="phoneNumber">Phone Number</Label>
+            <Label htmlFor="phone_number">Phone Number</Label>
             <Input
-              id="phoneNumber"
+              id="phone_number"
               placeholder="Enter phone number"
-              {...register('phoneNumber')}
-              className={errors.phoneNumber ? 'border-red-500' : ''}
+              {...register('phone_number')}
+              className={errors.phone_number ? 'border-red-500' : ''}
             />
-            {errors.phoneNumber && (
-              <p className="text-sm text-red-500">{errors.phoneNumber.message}</p>
+            {errors.phone_number && (
+              <p className="text-sm text-red-500">{errors.phone_number.message}</p>
             )}
           </div>
           {/* Donation Type */}
           <div className="space-y-2">
-            <Label htmlFor="type">Donation Type</Label>
+            <Label htmlFor="donation_type">Donation Type</Label>
             <Select
               value={watchedType}
               onValueChange={(value) => {
-                setValue('type', value as DonationType);
-                trigger('type'); // Trigger validation to clear error message
+                setValue('donation_type', value as DonationTypeLabel);
+                trigger('donation_type');
               }}
             >
-              <SelectTrigger className={errors.type ? 'border-red-500' : ''}>
+              <SelectTrigger className={errors.donation_type ? 'border-red-500' : ''}>
                 <SelectValue placeholder="Select donation type" />
               </SelectTrigger>
               <SelectContent>
@@ -153,55 +169,52 @@ export function AddDonationModal({ open, onOpenChange }: AddDonationModalProps) 
                 ))}
               </SelectContent>
             </Select>
-            {errors.type && <p className="text-sm text-red-500">{errors.type.message}</p>}
-          </div>
-
-          {/* Branch */}
-          <div className="space-y-2">
-            <Label htmlFor="branch">Branch</Label>
-            <Select
-              value={watchedBranch}
-              onValueChange={(value) => {
-                setValue('branch', value as 'Boys' | 'Girls');
-                trigger('branch');
-              }}
-            >
-              <SelectTrigger className={errors.branch ? 'border-red-500' : ''}>
-                <SelectValue placeholder="Select branch" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Boys">Boys</SelectItem>
-                <SelectItem value="Girls">Girls</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.branch && <p className="text-sm text-red-500">{errors.branch.message}</p>}
+            {errors.donation_type && (
+              <p className="text-sm text-red-500">{errors.donation_type.message}</p>
+            )}
           </div>
 
           {/* Date */}
           <div className="space-y-2">
-            <Label htmlFor="date">Date</Label>
+            <Label htmlFor="donation_date">Date</Label>
             <Input
-              id="date"
+              id="donation_date"
               type="date"
-              {...register('date')}
-              className={errors.date ? 'border-red-500' : ''}
+              {...register('donation_date')}
+              className={errors.donation_date ? 'border-red-500' : ''}
             />
-            {errors.date && <p className="text-sm text-red-500">{errors.date.message}</p>}
+            {errors.donation_date && (
+              <p className="text-sm text-red-500">{errors.donation_date.message}</p>
+            )}
           </div>
 
           {/* Amount */}
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount</Label>
+            <Label htmlFor="donation_amount">Amount</Label>
             <Input
-              id="amount"
+              id="donation_amount"
               type="number"
               placeholder="Enter amount"
-              {...register('amount', { valueAsNumber: true })}
-              className={errors.amount ? 'border-red-500' : ''}
+              {...register('donation_amount', { valueAsNumber: true })}
+              className={errors.donation_amount ? 'border-red-500' : ''}
               min="1"
               step="0.01"
             />
-            {errors.amount && <p className="text-sm text-red-500">{errors.amount.message}</p>}
+            {errors.donation_amount && (
+              <p className="text-sm text-red-500">{errors.donation_amount.message}</p>
+            )}
+          </div>
+
+          {/* Notes */}
+          <div className="space-y-2">
+            <Label htmlFor="notes">Notes (Optional)</Label>
+            <Input
+              id="notes"
+              placeholder="Enter notes"
+              {...register('notes')}
+              className={errors.notes ? 'border-red-500' : ''}
+            />
+            {errors.notes && <p className="text-sm text-red-500">{errors.notes.message}</p>}
           </div>
 
           {/* Submit Button */}

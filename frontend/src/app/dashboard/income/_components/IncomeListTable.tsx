@@ -412,12 +412,22 @@ export const incomeListTableColumns: ColumnDef<Income>[] = [
       );
     },
   },
+
   {
     accessorKey: 'branch',
     header: 'Branch',
     cell: ({ row }) => {
       const branch = row.getValue('branch') as number;
       return <div className="text-sm">{BRANCH_LABELS[branch as 1 | 2]}</div>;
+    },
+  },
+  {
+    accessorKey: 'admin_id',
+    header: 'Added By',
+    cell: ({ row }) => {
+      const admin = row.getValue('admin_id') as Income['admin_id'];
+      const fullname = admin?.employee_id?.fullname || 'Unknown';
+      return <div className="text-sm">{fullname}</div>;
     },
   },
   {

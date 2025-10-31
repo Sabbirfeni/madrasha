@@ -1,6 +1,12 @@
 'use client';
 
+import {
+  DONATION_TYPE_MAP,
+  DONATION_TYPE_REVERSE_MAP,
+  type DonationTypeLabel,
+} from '@/domain/donations/constants';
 import { formatDate, getCurrentYear } from '@/lib/date-utils';
+import type { Donation as ApiDonation } from '@/services/donation/types';
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -31,18 +37,15 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-import {
-  type Donation as DonationData,
-  type DonationType,
-  donationTypeOptions,
-} from '../donations';
 import { AddDonationModal } from './AddDonationModal';
 import { EditDonationModal } from './EditDonationModal';
 
-export type Donation = DonationData;
+export type Donation = ApiDonation;
+
+const donationTypeOptions: DonationTypeLabel[] = ['Sadaqah', 'Zakat', 'Membership', 'Others'];
 
 const badgeVariantByDonationType: Record<
-  DonationType,
+  DonationTypeLabel,
   React.ComponentProps<typeof Badge>['variant']
 > = {
   Sadaqah: 'secondary',
@@ -70,10 +73,9 @@ export function DonationListTable<TData, TValue>({
 
   // Search and filter states
   const [nameSearch, setNameSearch] = React.useState<string>('');
-  const [typeFilter, setTypeFilter] = React.useState<DonationType | ''>('');
+  const [typeFilter, setTypeFilter] = React.useState<DonationTypeLabel | ''>('');
   const [monthFilter, setMonthFilter] = React.useState<string>('');
   const [yearFilter, setYearFilter] = React.useState<string>('');
-  const [branchFilter, setBranchFilter] = React.useState<string>('');
 
   const handleEditDonation = (donation: Donation) => {
     setSelectedDonation(donation);
@@ -85,21 +87,21 @@ export function DonationListTable<TData, TValue>({
 
     if (nameSearch) {
       filtered = filtered.filter((donation) =>
-        donation.donorName.toLowerCase().includes(nameSearch.toLowerCase()),
+        donation.fullname.toLowerCase().includes(nameSearch.toLowerCase()),
       );
     }
 
     if (typeFilter) {
-      filtered = filtered.filter((donation) => donation.type === typeFilter);
+      const typeValue = DONATION_TYPE_REVERSE_MAP[typeFilter];
+      filtered = filtered.filter((donation) => donation.donation_type === typeValue);
     }
 
-    if (branchFilter) {
-      filtered = filtered.filter((donation) => donation.branch === branchFilter);
-    }
+    // Note: Branch filtering removed as backend doesn't have branch field
+    // If needed, this would require backend schema update
 
     if (monthFilter) {
       filtered = filtered.filter((donation) => {
-        const donationDate = new Date(donation.date);
+        const donationDate = new Date(donation.donation_date);
         const donationMonth = donationDate.getMonth() + 1; // getMonth() returns 0-11
         return donationMonth === Number.parseInt(monthFilter);
       });
@@ -107,18 +109,18 @@ export function DonationListTable<TData, TValue>({
 
     if (yearFilter) {
       filtered = filtered.filter((donation) => {
-        const donationDate = new Date(donation.date);
+        const donationDate = new Date(donation.donation_date);
         return donationDate.getFullYear() === Number.parseInt(yearFilter);
       });
     }
 
     return filtered as TData[];
-  }, [data, nameSearch, typeFilter, branchFilter, monthFilter, yearFilter]);
+  }, [data, nameSearch, typeFilter, monthFilter, yearFilter]);
 
   // Calculate total amount from filtered data
   const totalAmount = React.useMemo(() => {
     const filteredDonations = filteredData as Donation[];
-    return filteredDonations.reduce((sum, donation) => sum + donation.amount, 0);
+    return filteredDonations.reduce((sum, donation) => sum + donation.donation_amount, 0);
   }, [filteredData]);
 
   const updatedColumns = React.useMemo(() => {
@@ -197,34 +199,6 @@ export function DonationListTable<TData, TValue>({
               className="h-9 w-64"
             />
           </div>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="h-9 px-3 bg-transparent">
-                {branchFilter || 'Branches'}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuCheckboxItem
-                checked={!branchFilter}
-                onCheckedChange={() => setBranchFilter('')}
-              >
-                All Branches
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={branchFilter === 'Boys'}
-                onCheckedChange={() => setBranchFilter(branchFilter === 'Boys' ? '' : 'Boys')}
-              >
-                Boys
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={branchFilter === 'Girls'}
-                onCheckedChange={() => setBranchFilter(branchFilter === 'Girls' ? '' : 'Girls')}
-              >
-                Girls
-              </DropdownMenuCheckboxItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -395,47 +369,46 @@ export function DonationListTable<TData, TValue>({
 
 export const donationListTableColumns: ColumnDef<Donation>[] = [
   {
-    accessorKey: 'donorName',
+    accessorKey: 'fullname',
     header: 'Name',
-    cell: ({ row }) => <div className="font-medium">{row.getValue('donorName')}</div>,
+    cell: ({ row }) => <div className="font-medium">{row.getValue('fullname')}</div>,
   },
   {
-    accessorKey: 'branch',
-    header: 'Branch',
-    cell: ({ row }) => <div className="text-sm">{row.getValue('branch')}</div>,
-  },
-  {
-    accessorKey: 'phoneNumber',
+    accessorKey: 'phone_number',
     header: 'Phone',
-    cell: ({ row }) => <div className="text-sm">{row.getValue('phoneNumber')}</div>,
+    cell: ({ row }) => <div className="text-sm">{row.getValue('phone_number')}</div>,
   },
   {
-    accessorKey: 'type',
+    accessorKey: 'donation_type',
     header: 'Type',
     cell: ({ row }) => {
-      const type = row.getValue('type') as string;
-      const variant = badgeVariantByDonationType[type as DonationType] ?? 'outline';
-      return <Badge variant={variant}>{type}</Badge>;
+      const typeValue = row.getValue('donation_type') as number;
+      const typeLabel = DONATION_TYPE_MAP[typeValue as keyof typeof DONATION_TYPE_MAP];
+      const variant = badgeVariantByDonationType[typeLabel] ?? 'outline';
+      return <Badge variant={variant}>{typeLabel}</Badge>;
     },
   },
   {
-    accessorKey: 'addedBy',
+    accessorKey: 'admin_id',
     header: 'Added By',
-    cell: ({ row }) => <div className="text-sm">{row.getValue('addedBy')}</div>,
+    cell: ({ row }) => {
+      const adminData = row.getValue('admin_id') as Donation['admin_id'];
+      return <div className="text-sm">{adminData?.employee_id?.fullname || 'N/A'}</div>;
+    },
   },
   {
-    accessorKey: 'date',
+    accessorKey: 'donation_date',
     header: 'Date',
     cell: ({ row }) => {
-      const date = row.getValue('date') as string;
+      const date = row.getValue('donation_date') as string;
       return <div className="text-sm">{formatDate(date)}</div>;
     },
   },
   {
-    accessorKey: 'amount',
+    accessorKey: 'donation_amount',
     header: 'Amount',
     cell: ({ row }) => {
-      const amount = row.getValue('amount') as number;
+      const amount = row.getValue('donation_amount') as number;
       return <div className="font-medium">৳{amount.toLocaleString()}</div>;
     },
   },
