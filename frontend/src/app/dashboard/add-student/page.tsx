@@ -1,11 +1,31 @@
 'use client';
 
+import {
+  STUDENT_BLOOD_GROUP_OPTIONS,
+  STUDENT_CLASS_OPTIONS,
+  STUDENT_GENDER_OPTIONS,
+  STUDENT_GROUP_OPTIONS,
+  STUDENT_PROFILE_PLACEHOLDERS,
+  STUDENT_RESIDENTIAL_CATEGORY_FEES,
+  STUDENT_RESIDENTIAL_CATEGORY_OPTIONS,
+  STUDENT_SECTION_OPTIONS,
+  StudentGender,
+  StudentGroup,
+  StudentResidentialCategory,
+  buildStudentPayload,
+  parseStudentGenderLabel,
+} from '@/domain/students';
+import { createStudent } from '@/services/students';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Camera, Save } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useSession } from 'next-auth/react';
+import { type SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { z } from 'zod';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+import { useRouter } from 'next/navigation';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -25,7 +45,7 @@ const studentFormSchema = z
   .object({
     // General Information
     branch: z.string().min(1, 'Branch is required'),
-    profile_image: z.string().min(1, 'Profile image is required'),
+    profile_image: z.string().optional(),
     full_name: z.string().min(1, 'Full name is required'),
     blood_group: z.string().min(1, 'Blood group is required'),
     birth_certificate_no: z.string().min(1, 'Birth certificate number is required'),
@@ -39,19 +59,26 @@ const studentFormSchema = z
     permanent_location: z.string().min(1, 'Permanent location is required'),
     day_care: z.boolean(),
     residential: z.boolean(),
-    residential_category: z.string(),
+    residential_category: z.string().optional().or(z.literal('')),
 
     // Fee Information
     class_fee: z.coerce.number(),
-    residential_fee: z.coerce.number().min(1),
+    residential_fee: z.coerce.number().min(0),
     waiver_amount: z.coerce.number().min(0, 'Waiver amount must be positive'),
     total: z.coerce.number(),
 
     // Guardian Information
     guardian_name: z.string().min(1, 'Guardian name is required'),
     guardian_relation: z.string().min(1, 'Guardian relation is required'),
-    phone_number: z.string().min(1, 'Phone number is required'),
-    alternative_phone_number: z.string(),
+    phone_number: z
+      .string()
+      .min(1, 'Phone number is required')
+      .regex(/^01\d{9}$/, 'Phone number must be 11 digits starting with 01'),
+    alternative_phone_number: z
+      .string()
+      .regex(/^01\d{9}$/, 'Phone number must be 11 digits starting with 01')
+      .optional()
+      .or(z.literal('')),
     guardian_current_location: z.string().min(1, 'Guardian current location is required'),
     guardian_permanent_location: z.string().min(1, 'Guardian permanent location is required'),
   })
@@ -75,38 +102,38 @@ const studentFormSchema = z
     }
 
     // If residential is true, residential_category is required
-    if (
-      data.residential &&
-      (!data.residential_category || data.residential_category.length === 0)
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Residential category is required when residential is selected',
-        path: ['residential_category'],
-      });
+    if (data.residential) {
+      if (!data.residential_category || data.residential_category.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Residential category is required when residential is selected',
+          path: ['residential_category'],
+        });
+      }
+
+      if (data.residential_fee <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Residential fee must be greater than 0 when residential is selected',
+          path: ['residential_fee'],
+        });
+      }
     }
   });
 
 type StudentFormData = z.infer<typeof studentFormSchema>;
-
-type ResidentialCategory = {
-  name: string;
-  fee: number;
-};
-
-const residentialCategories: ResidentialCategory[] = [
-  { name: 'Normal', fee: 3000 },
-  { name: 'Medium', fee: 5000 },
-  { name: 'VIP', fee: 8000 },
-];
 
 const NO_GROUP_OPTION_VALUE = '__no_group__';
 const NO_CLASS_OPTION_VALUE = '__no_class__';
 
 export default function AddStudentPage() {
   const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+
+  const router = useRouter();
+  const { data: session } = useSession();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -153,28 +180,83 @@ export default function AddStudentPage() {
 
   const watchedValues = watch();
 
-  const onSubmit = async () => {
+  const totalFee = Math.max(
+    0,
+    (Number(watchedValues.class_fee) || 0) +
+      (watchedValues.residential ? Number(watchedValues.residential_fee) || 0 : 0) -
+      (Number(watchedValues.waiver_amount) || 0),
+  );
+
+  useEffect(() => {
+    if (!watchedValues.residential) {
+      setValue('residential_category', '', { shouldValidate: true });
+      setValue('residential_fee', 0, { shouldValidate: true });
+    }
+  }, [watchedValues.residential, setValue]);
+
+  useEffect(() => {
+    setValue('total', totalFee, { shouldValidate: false });
+  }, [totalFee, setValue]);
+
+  const onSubmit: SubmitHandler<StudentFormData> = async (values) => {
     setIsSaving(true);
+    setErrorMessage(null);
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      const genderEnum = parseStudentGenderLabel(values.gender) ?? StudentGender.MALE;
 
-    reset();
-    setIsSaving(false);
-    setImagePreview(null);
-    setHasAttemptedSubmit(false);
+      const profileImage =
+        values.profile_image && values.profile_image.length > 0
+          ? values.profile_image
+          : STUDENT_PROFILE_PLACEHOLDERS[genderEnum];
+
+      setValue('profile_image', profileImage);
+
+      const payload = buildStudentPayload({
+        ...values,
+        profile_image: profileImage,
+      });
+
+      const { error } = await createStudent(payload, {
+        accessToken: (session as typeof session & { accessToken?: string })?.accessToken,
+      });
+
+      if (error) {
+        throw new Error(error.statusText || 'Failed to create student');
+      }
+
+      reset();
+      setImagePreview(null);
+      setHasAttemptedSubmit(false);
+      router.push('/dashboard/students');
+      toast.success('Student created successfully');
+    } catch {
+      setErrorMessage('Failed to create student');
+      toast.error('Failed to create student');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleFormSubmit = () => {
+    setErrorMessage(null);
+    if (!watchedValues.profile_image && !imagePreview) {
+      const genderEnum = parseStudentGenderLabel(watchedValues.gender) ?? StudentGender.MALE;
+      const placeholder = STUDENT_PROFILE_PLACEHOLDERS[genderEnum];
+      setValue('profile_image', placeholder, { shouldValidate: true });
+      setImagePreview(placeholder);
+    }
     setHasAttemptedSubmit(true);
-    handleSubmit(onSubmit)();
+    (handleSubmit as unknown as (fn: SubmitHandler<StudentFormData>) => () => void)(onSubmit)();
   };
 
-  const handleResidentialCategoryChange = (categoryName: string) => {
-    setValue('residential_category', categoryName, { shouldValidate: true });
-    const selectedCategory = residentialCategories.find((cat) => cat.name === categoryName);
-    if (selectedCategory) {
-      setValue('residential_fee', selectedCategory.fee);
-    }
+  const handleResidentialCategoryChange = (categoryValue: string) => {
+    const category =
+      (categoryValue as StudentResidentialCategory) ?? StudentResidentialCategory.NORMAL;
+    setValue('residential_category', category, { shouldValidate: true });
+    setValue('residential_fee', STUDENT_RESIDENTIAL_CATEGORY_FEES[category] ?? 0, {
+      shouldValidate: true,
+    });
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -193,12 +275,6 @@ export default function AddStudentPage() {
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
   };
-
-  // Calculate total fee
-  const totalFee =
-    (Number(watchedValues.class_fee) || 0) +
-    (watchedValues.residential ? Number(watchedValues.residential_fee) || 0 : 0) -
-    (Number(watchedValues.waiver_amount) || 0);
 
   return (
     <div className="container mx-auto space-y-6">
@@ -252,6 +328,17 @@ export default function AddStudentPage() {
           </Button>
         </div>
       </div>
+
+      {/* Error Message */}
+      {errorMessage && (
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardContent>
+            <div className="flex items-center gap-2 text-destructive py-2">
+              <p className="text-sm font-medium">{errorMessage}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Profile Image Required Message */}
       {hasAttemptedSubmit && !imagePreview && !watchedValues.profile_image && (
@@ -322,14 +409,11 @@ export default function AddStudentPage() {
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="A+">A+</SelectItem>
-                  <SelectItem value="A-">A-</SelectItem>
-                  <SelectItem value="B+">B+</SelectItem>
-                  <SelectItem value="B-">B-</SelectItem>
-                  <SelectItem value="AB+">AB+</SelectItem>
-                  <SelectItem value="AB-">AB-</SelectItem>
-                  <SelectItem value="O+">O+</SelectItem>
-                  <SelectItem value="O-">O-</SelectItem>
+                  {STUDENT_BLOOD_GROUP_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               {hasAttemptedSubmit && errors.blood_group && (
@@ -363,8 +447,11 @@ export default function AddStudentPage() {
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Male">Male</SelectItem>
-                  <SelectItem value="Female">Female</SelectItem>
+                  {STUDENT_GENDER_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               {hasAttemptedSubmit && errors.gender && (
@@ -398,10 +485,11 @@ export default function AddStudentPage() {
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Najera">Najera</SelectItem>
-                  <SelectItem value="Hifz">Hifz</SelectItem>
-                  <SelectItem value="Nurani">Nurani</SelectItem>
-                  <SelectItem value="Kitab">Kitab</SelectItem>
+                  {STUDENT_SECTION_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.label}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               {hasAttemptedSubmit && errors.section_name && (
@@ -426,10 +514,13 @@ export default function AddStudentPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={NO_GROUP_OPTION_VALUE}>No group</SelectItem>
-                  <SelectItem value="Ibtida'iyyah">Ibtida&apos;iyyah</SelectItem>
-                  <SelectItem value="Thanawiyyah 'Ulyā">Thanawiyyah &apos;Ulyā</SelectItem>
-                  <SelectItem value="Ālimiyyah">Ālimiyyah</SelectItem>
-                  <SelectItem value="Mutawassitah">Mutawassitah</SelectItem>
+                  {STUDENT_GROUP_OPTIONS.filter((option) => option.value !== StudentGroup.NONE).map(
+                    (option) => (
+                      <SelectItem key={option.value} value={option.label}>
+                        {option.label}
+                      </SelectItem>
+                    ),
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -451,17 +542,11 @@ export default function AddStudentPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={NO_CLASS_OPTION_VALUE}>No class</SelectItem>
-                  <SelectItem value="Shishu">Shishu</SelectItem>
-                  <SelectItem value="One">One</SelectItem>
-                  <SelectItem value="Two">Two</SelectItem>
-                  <SelectItem value="Three">Three</SelectItem>
-                  <SelectItem value="Four">Four</SelectItem>
-                  <SelectItem value="Five">Five</SelectItem>
-                  <SelectItem value="Six">Six</SelectItem>
-                  <SelectItem value="Seven">Seven</SelectItem>
-                  <SelectItem value="Eight">Eight</SelectItem>
-                  <SelectItem value="Nine">Nine</SelectItem>
-                  <SelectItem value="Ten">Ten</SelectItem>
+                  {STUDENT_CLASS_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.label}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -472,6 +557,7 @@ export default function AddStudentPage() {
               </Label>
               <Input
                 className="bg-muted/40 dark:bg-input/40"
+                type="number"
                 {...register('roll')}
                 placeholder="Enter roll number"
               />
@@ -561,9 +647,10 @@ export default function AddStudentPage() {
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent>
-                    {residentialCategories.map((category) => (
-                      <SelectItem key={category.name} value={category.name}>
-                        {category.name} (৳{category.fee.toLocaleString()})
+                    {STUDENT_RESIDENTIAL_CATEGORY_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label} (৳
+                        {STUDENT_RESIDENTIAL_CATEGORY_FEES[option.value].toLocaleString()})
                       </SelectItem>
                     ))}
                   </SelectContent>

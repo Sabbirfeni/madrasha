@@ -14,6 +14,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Camera, Save } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { z } from 'zod';
 
 import { useRef, useState } from 'react';
@@ -149,8 +150,6 @@ export default function AddEmployeePage() {
         permanent_location: values.permanent_location,
       };
 
-      console.log('payload', payload);
-
       const { error } = await createEmployee(payload, {
         accessToken: (session as typeof session & { accessToken?: string })?.accessToken,
       });
@@ -163,8 +162,10 @@ export default function AddEmployeePage() {
       setImagePreview(null);
       setHasAttemptedSubmit(false);
       router.push('/dashboard/employees');
-    } catch (err) {
-      setErrorMessage((err as Error).message || 'Failed to create employee');
+      toast.success('Employee created successfully');
+    } catch {
+      setErrorMessage('Failed to create employee');
+      toast.error('Failed to create employee');
     } finally {
       setIsSaving(false);
     }

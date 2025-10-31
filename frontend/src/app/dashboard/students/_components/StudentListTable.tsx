@@ -1,5 +1,13 @@
 'use client';
 
+import { BRANCH_LABELS, Branch } from '@/domain/branches';
+import {
+  STUDENT_CLASS_LABELS,
+  STUDENT_SECTION_LABELS,
+  StudentClass,
+  StudentSection,
+} from '@/domain/students';
+import type { Student } from '@/services/students/types';
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -32,32 +40,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-export type Student = {
-  id: string;
-  student_image?: string;
-  name: string;
-  branch: 'Boys' | 'Girls';
-  is_residential: boolean;
-  section: 'Najera' | 'Hifz' | 'Nurani' | 'Kitab';
-  class:
-    | 'Shishu'
-    | 'One'
-    | 'Two'
-    | 'Three'
-    | 'Four'
-    | 'Five'
-    | 'Six'
-    | 'Seven'
-    | 'Eight'
-    | 'Nine'
-    | 'Ten';
-  enrollment_years: number[];
-  guardian: {
-    name: string;
-    phone: string;
-  };
-};
-
 interface StudentListTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -73,9 +55,9 @@ export function StudentListTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
   const [nameSearch, setNameSearch] = React.useState<string>('');
-  const [branchFilter, setBranchFilter] = React.useState<string>('');
-  const [sectionFilter, setSectionFilter] = React.useState<string>('');
-  const [classFilter, setClassFilter] = React.useState<string>('');
+  const [branchFilter, setBranchFilter] = React.useState<number | null>(null);
+  const [sectionFilter, setSectionFilter] = React.useState<number | null>(null);
+  const [classFilter, setClassFilter] = React.useState<number | null>(null);
   const [yearFilter, setYearFilter] = React.useState<string>('');
 
   const filteredData = React.useMemo(() => {
@@ -83,17 +65,17 @@ export function StudentListTable<TData, TValue>({
 
     if (nameSearch) {
       filtered = filtered.filter((student) =>
-        student.name.toLowerCase().includes(nameSearch.toLowerCase()),
+        student.fullname.toLowerCase().includes(nameSearch.toLowerCase()),
       );
     }
 
-    if (branchFilter) {
+    if (branchFilter !== null) {
       filtered = filtered.filter((student) => student.branch === branchFilter);
     }
-    if (sectionFilter) {
+    if (sectionFilter !== null) {
       filtered = filtered.filter((student) => student.section === sectionFilter);
     }
-    if (classFilter) {
+    if (classFilter !== null) {
       filtered = filtered.filter((student) => student.class === classFilter);
     }
     if (yearFilter) {
@@ -141,27 +123,31 @@ export function StudentListTable<TData, TValue>({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="h-9 px-3 bg-transparent">
-                {branchFilter || 'Branches'}
+                {branchFilter !== null ? BRANCH_LABELS[branchFilter as Branch] : 'Branches'}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuCheckboxItem
-                checked={!branchFilter}
-                onCheckedChange={() => setBranchFilter('')}
+                checked={branchFilter === null}
+                onCheckedChange={() => setBranchFilter(null)}
               >
                 All Branches
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={branchFilter === 'Boys'}
-                onCheckedChange={() => setBranchFilter(branchFilter === 'Boys' ? '' : 'Boys')}
+                checked={branchFilter === Branch.BOYS}
+                onCheckedChange={() =>
+                  setBranchFilter(branchFilter === Branch.BOYS ? null : Branch.BOYS)
+                }
               >
-                Boys
+                {BRANCH_LABELS[Branch.BOYS]}
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={branchFilter === 'Girls'}
-                onCheckedChange={() => setBranchFilter(branchFilter === 'Girls' ? '' : 'Girls')}
+                checked={branchFilter === Branch.GIRLS}
+                onCheckedChange={() =>
+                  setBranchFilter(branchFilter === Branch.GIRLS ? null : Branch.GIRLS)
+                }
               >
-                Girls
+                {BRANCH_LABELS[Branch.GIRLS]}
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -169,39 +155,57 @@ export function StudentListTable<TData, TValue>({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="h-9 px-3 bg-transparent">
-                {sectionFilter || 'Sections'}
+                {sectionFilter !== null
+                  ? STUDENT_SECTION_LABELS[sectionFilter as StudentSection]
+                  : 'Sections'}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuCheckboxItem
-                checked={!sectionFilter}
-                onCheckedChange={() => setSectionFilter('')}
+                checked={sectionFilter === null}
+                onCheckedChange={() => setSectionFilter(null)}
               >
                 All Sections
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={sectionFilter === 'Najera'}
-                onCheckedChange={() => setSectionFilter(sectionFilter === 'Najera' ? '' : 'Najera')}
+                checked={sectionFilter === StudentSection.NAJERA}
+                onCheckedChange={() =>
+                  setSectionFilter(
+                    sectionFilter === StudentSection.NAJERA ? null : StudentSection.NAJERA,
+                  )
+                }
               >
-                Najera
+                {STUDENT_SECTION_LABELS[StudentSection.NAJERA]}
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={sectionFilter === 'Hifz'}
-                onCheckedChange={() => setSectionFilter(sectionFilter === 'Hifz' ? '' : 'Hifz')}
+                checked={sectionFilter === StudentSection.HIFZ}
+                onCheckedChange={() =>
+                  setSectionFilter(
+                    sectionFilter === StudentSection.HIFZ ? null : StudentSection.HIFZ,
+                  )
+                }
               >
-                Hifz
+                {STUDENT_SECTION_LABELS[StudentSection.HIFZ]}
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={sectionFilter === 'Nurani'}
-                onCheckedChange={() => setSectionFilter(sectionFilter === 'Nurani' ? '' : 'Nurani')}
+                checked={sectionFilter === StudentSection.NURANI}
+                onCheckedChange={() =>
+                  setSectionFilter(
+                    sectionFilter === StudentSection.NURANI ? null : StudentSection.NURANI,
+                  )
+                }
               >
-                Nurani
+                {STUDENT_SECTION_LABELS[StudentSection.NURANI]}
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={sectionFilter === 'Kitab'}
-                onCheckedChange={() => setSectionFilter(sectionFilter === 'Kitab' ? '' : 'Kitab')}
+                checked={sectionFilter === StudentSection.KITAB}
+                onCheckedChange={() =>
+                  setSectionFilter(
+                    sectionFilter === StudentSection.KITAB ? null : StudentSection.KITAB,
+                  )
+                }
               >
-                Kitab
+                {STUDENT_SECTION_LABELS[StudentSection.KITAB]}
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -209,37 +213,32 @@ export function StudentListTable<TData, TValue>({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="h-9 px-3 bg-transparent">
-                {classFilter || 'Classes'}
+                {classFilter !== null
+                  ? STUDENT_CLASS_LABELS[classFilter as StudentClass]
+                  : 'Classes'}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuCheckboxItem
-                checked={!classFilter}
-                onCheckedChange={() => setClassFilter('')}
+                checked={classFilter === null}
+                onCheckedChange={() => setClassFilter(null)}
               >
                 All Classes
               </DropdownMenuCheckboxItem>
-              {[
-                'Shishu',
-                'One',
-                'Two',
-                'Three',
-                'Four',
-                'Five',
-                'Six',
-                'Seven',
-                'Eight',
-                'Nine',
-                'Ten',
-              ].map((cls) => (
-                <DropdownMenuCheckboxItem
-                  key={cls}
-                  checked={classFilter === cls}
-                  onCheckedChange={() => setClassFilter(classFilter === cls ? '' : cls)}
-                >
-                  {cls}
-                </DropdownMenuCheckboxItem>
-              ))}
+              {Object.entries(STUDENT_CLASS_LABELS).map(([value, label]) => {
+                const classValue = Number.parseInt(value) as StudentClass;
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={value}
+                    checked={classFilter === classValue}
+                    onCheckedChange={() =>
+                      setClassFilter(classFilter === classValue ? null : classValue)
+                    }
+                  >
+                    {label}
+                  </DropdownMenuCheckboxItem>
+                );
+              })}
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -350,11 +349,11 @@ export function StudentListTable<TData, TValue>({
 
 export const studentListTableColumns: ColumnDef<Student>[] = [
   {
-    accessorKey: 'name',
+    accessorKey: 'fullname',
     header: 'Name',
     cell: ({ row }) => {
       const student = row.original;
-      const initials = student.name
+      const initials = student.fullname
         .split(' ')
         .map((n) => n[0])
         .join('')
@@ -363,10 +362,10 @@ export const studentListTableColumns: ColumnDef<Student>[] = [
       return (
         <div className="flex items-center gap-3">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={student.student_image || '/placeholder.svg'} alt={student.name} />
+            <AvatarImage src={student.profile_image || '/placeholder.svg'} alt={student.fullname} />
             <AvatarFallback className="text-xs font-medium">{initials}</AvatarFallback>
           </Avatar>
-          <div className="font-medium">{student.name}</div>
+          <div className="font-medium">{student.fullname}</div>
         </div>
       );
     },
@@ -374,19 +373,33 @@ export const studentListTableColumns: ColumnDef<Student>[] = [
   {
     accessorKey: 'section',
     header: 'Section',
-    cell: ({ row }) => <div className="text-sm">{row.getValue('section')}</div>,
+    cell: ({ row }) => {
+      const section = row.getValue('section') as number | undefined;
+      return (
+        <div className="text-sm">
+          {section ? STUDENT_SECTION_LABELS[section as StudentSection] : '-'}
+        </div>
+      );
+    },
   },
   {
     accessorKey: 'class',
     header: 'Class',
-    cell: ({ row }) => <div className="text-sm">{row.getValue('class')}</div>,
+    cell: ({ row }) => {
+      const classValue = row.getValue('class') as number | undefined;
+      return (
+        <div className="text-sm">
+          {classValue ? STUDENT_CLASS_LABELS[classValue as StudentClass] : '-'}
+        </div>
+      );
+    },
   },
   {
     accessorKey: 'guardian',
     header: 'Guardian Name',
     cell: ({ row }) => {
       const guardian = row.getValue('guardian') as Student['guardian'];
-      return <div className="font-medium">{guardian.name}</div>;
+      return <div className="font-medium">{guardian?.name || '-'}</div>;
     },
   },
   {
@@ -394,7 +407,7 @@ export const studentListTableColumns: ColumnDef<Student>[] = [
     header: 'Phone',
     cell: ({ row }) => {
       const guardian = row.getValue('guardian') as Student['guardian'];
-      return <div className="font-mono text-sm">{guardian.phone}</div>;
+      return <div className="font-mono text-sm">{guardian?.phone || '-'}</div>;
     },
   },
   {
@@ -404,7 +417,7 @@ export const studentListTableColumns: ColumnDef<Student>[] = [
     cell: ({ row }) => {
       const student = row.original;
       return (
-        <Link href={`/dashboard/students/${student.id}`}>
+        <Link href={`/dashboard/students/${student._id}`}>
           <Button variant="link" className="h-auto p-0 text-sm text-primary underline">
             Details
           </Button>

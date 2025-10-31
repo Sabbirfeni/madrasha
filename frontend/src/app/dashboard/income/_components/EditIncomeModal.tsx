@@ -1,11 +1,17 @@
 'use client';
 
+import { BRANCH_LABELS } from '@/domain/branches/lib/labels';
+import { INCOME_TYPE_LABELS } from '@/domain/income';
+import { updateIncome } from '@/services/income';
+import type { Income } from '@/services/income/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import type React from 'react';
 import { useEffect, useState } from 'react';
+
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -19,34 +25,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-import type { Income } from './IncomeListTable';
-
 const incomeSchema = z.object({
-  branch: z
-    .string()
-    .min(1, 'Please select a branch')
-    .refine((val) => val && ['Boys', 'Girls'].includes(val), {
-      message: 'Please select a valid branch',
-    }),
-  type: z
-    .string()
-    .min(1, 'Please select an income type')
-    .refine(
-      (val) =>
-        val &&
-        ['Admission Fee', 'Session Fee', "Students' Monthly Fee", 'Canteen', 'Others'].includes(
-          val,
-        ),
-      {
-        message: 'Please select a valid income type',
-      },
-    ),
-  note: z.string(),
-  date: z.string().min(1, 'Date is required'),
+  branch: z.number().min(1, 'Please select a branch'),
+  type: z.number().min(1, 'Please select an income type'),
+  notes: z.string().min(1, 'Note is required').max(255, 'Note must be less than 255 characters'),
+  income_date: z.string().min(1, 'Date is required'),
   amount: z
     .number({ message: 'Amount must be a number' })
-    .min(0.01, 'Amount must be greater than 0')
-    .refine((val) => val > 0, 'Amount cannot be 0 or empty'),
+    .min(1, 'Amount must be at least 1')
+    .int('Amount must be an integer'),
 });
 
 type IncomeFormData = z.infer<typeof incomeSchema>;
@@ -59,6 +46,7 @@ interface EditIncomeModalProps {
 
 export function EditIncomeModal({ open, onOpenChange, income }: EditIncomeModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
   const {
     register,
@@ -69,10 +57,10 @@ export function EditIncomeModal({ open, onOpenChange, income }: EditIncomeModalP
   } = useForm<IncomeFormData>({
     resolver: zodResolver(incomeSchema),
     defaultValues: {
-      branch: '',
-      type: '',
-      note: '',
-      date: '',
+      branch: 0,
+      type: 0,
+      notes: '',
+      income_date: '',
       amount: 0,
     },
   });
@@ -82,8 +70,8 @@ export function EditIncomeModal({ open, onOpenChange, income }: EditIncomeModalP
       reset({
         branch: income.branch,
         type: income.type,
-        note: income.note,
-        date: income.date,
+        notes: income.notes,
+        income_date: income.income_date.split('T')[0],
         amount: income.amount,
       });
     }
@@ -94,17 +82,10 @@ export function EditIncomeModal({ open, onOpenChange, income }: EditIncomeModalP
 
     setIsSubmitting(true);
     try {
-      // Here you would typically call an API to update the income
-      console.log('Updating income:', { id: income.id, ...data });
+      await updateIncome(income._id, data);
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Close modal
       onOpenChange(false);
-
-      // You could add a toast notification here
-      console.log('Income updated successfully!');
+      router.refresh();
     } catch (error) {
       console.error('Error updating income:', error);
     } finally {
@@ -136,13 +117,19 @@ export function EditIncomeModal({ open, onOpenChange, income }: EditIncomeModalP
                 name="branch"
                 control={control}
                 render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select
+                    value={field.value?.toString()}
+                    onValueChange={(val) => field.onChange(Number.parseInt(val))}
+                  >
                     <SelectTrigger className={errors.branch ? 'border-red-500' : ''}>
                       <SelectValue placeholder="Select branch" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Boys">Boys</SelectItem>
-                      <SelectItem value="Girls">Girls</SelectItem>
+                      {Object.entries(BRANCH_LABELS).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 )}
@@ -157,18 +144,19 @@ export function EditIncomeModal({ open, onOpenChange, income }: EditIncomeModalP
                 name="type"
                 control={control}
                 render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select
+                    value={field.value?.toString()}
+                    onValueChange={(val) => field.onChange(Number.parseInt(val))}
+                  >
                     <SelectTrigger className={errors.type ? 'border-red-500' : ''}>
                       <SelectValue placeholder="Select income type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Admission Fee">Admission Fee</SelectItem>
-                      <SelectItem value="Session Fee">Session Fee</SelectItem>
-                      <SelectItem value="Students' Monthly Fee">
-                        Students&rsquo; Monthly Fee
-                      </SelectItem>
-                      <SelectItem value="Canteen">Canteen</SelectItem>
-                      <SelectItem value="Others">Others</SelectItem>
+                      {Object.entries(INCOME_TYPE_LABELS).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 )}
@@ -179,28 +167,30 @@ export function EditIncomeModal({ open, onOpenChange, income }: EditIncomeModalP
 
           {/* Note */}
           <div className="space-y-2">
-            <Label htmlFor="note">Note</Label>
+            <Label htmlFor="notes">Note</Label>
             <textarea
-              id="note"
+              id="notes"
               placeholder="Enter note or description"
-              {...register('note')}
+              {...register('notes')}
               className={`flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
-                errors.note ? 'border-red-500' : ''
+                errors.notes ? 'border-red-500' : ''
               }`}
             />
-            {errors.note && <p className="text-sm text-red-500">{errors.note.message}</p>}
+            {errors.notes && <p className="text-sm text-red-500">{errors.notes.message}</p>}
           </div>
 
           {/* Date */}
           <div className="space-y-2">
-            <Label htmlFor="date">Date</Label>
+            <Label htmlFor="income_date">Date</Label>
             <Input
-              id="date"
+              id="income_date"
               type="date"
-              {...register('date')}
-              className={errors.date ? 'border-red-500' : ''}
+              {...register('income_date')}
+              className={errors.income_date ? 'border-red-500' : ''}
             />
-            {errors.date && <p className="text-sm text-red-500">{errors.date.message}</p>}
+            {errors.income_date && (
+              <p className="text-sm text-red-500">{errors.income_date.message}</p>
+            )}
           </div>
 
           {/* Amount */}
