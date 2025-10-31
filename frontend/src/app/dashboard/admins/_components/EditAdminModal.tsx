@@ -20,10 +20,8 @@ import { Admin } from './AdminListTable';
 type AdminWithPermissions = Admin & {
   access_boys_section?: boolean;
   access_girls_section?: boolean;
-  access_residential_section?: boolean;
   is_access_boys_section?: boolean;
   is_access_girls_section?: boolean;
-  is_access_residential_section?: boolean;
 };
 
 interface EditAdminModalProps {
@@ -38,7 +36,6 @@ export function EditAdminModal({ open, onOpenChange, admin }: EditAdminModalProp
   const [permissions, setPermissions] = useState({
     is_access_boys_section: false,
     is_access_girls_section: false,
-    is_access_residential_section: false,
   });
 
   useEffect(() => {
@@ -47,9 +44,6 @@ export function EditAdminModal({ open, onOpenChange, admin }: EditAdminModalProp
     setPermissions({
       is_access_boys_section: Boolean(a.access_boys_section ?? a.is_access_boys_section),
       is_access_girls_section: Boolean(a.access_girls_section ?? a.is_access_girls_section),
-      is_access_residential_section: Boolean(
-        a.access_residential_section ?? a.is_access_residential_section,
-      ),
     });
   }, [admin, open]);
 
@@ -69,7 +63,6 @@ export function EditAdminModal({ open, onOpenChange, admin }: EditAdminModalProp
         body: {
           access_boys_section: permissions.is_access_boys_section,
           access_girls_section: permissions.is_access_girls_section,
-          access_residential_section: permissions.is_access_residential_section,
         },
       }).unwrap();
       router.refresh();
@@ -152,17 +145,6 @@ export function EditAdminModal({ open, onOpenChange, admin }: EditAdminModalProp
                   />
                   <Label htmlFor="girls-section" className="text-sm font-normal">
                     Girls Section
-                  </Label>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="residential-section"
-                    checked={permissions.is_access_residential_section}
-                    onCheckedChange={() => handlePermissionChange('is_access_residential_section')}
-                  />
-                  <Label htmlFor="residential-section" className="text-sm font-normal">
-                    Residential Section
                   </Label>
                 </div>
               </div>

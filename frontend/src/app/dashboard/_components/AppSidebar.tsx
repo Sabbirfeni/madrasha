@@ -80,7 +80,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
+            <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5 h-12">
               <Link href="/">
                 <Image
                   src={MadrasaLogo}
@@ -89,7 +89,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   height={36}
                   className="rounded-full object-contain"
                 />
-                <span className="text-base font-semibold">Habrul Ummah</span>
+                <span className="text-base font-semibold">
+                  Habrul Ummah <br /> Model Madrasah
+                </span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

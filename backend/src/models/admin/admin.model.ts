@@ -27,10 +27,6 @@ const adminSchema: Schema = new mongoose.Schema(
       type: Boolean,
       required: true,
     },
-    access_residential_section: {
-      type: Boolean,
-      required: true,
-    },
   },
   {
     timestamps: true,

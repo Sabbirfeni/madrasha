@@ -20,6 +20,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+import { type DonationType, donationTypeOptions } from '../donations';
+
 // Zod validation schema
 const donationSchema = z.object({
   donorName: z.string().min(1, 'Donor name is required'),
@@ -27,8 +29,14 @@ const donationSchema = z.object({
   type: z
     .string()
     .min(1, 'Please select a donation type')
-    .refine((val) => ['Membership', 'Sadka', 'Jakat'].includes(val), {
+    .refine((val) => donationTypeOptions.includes(val as DonationType), {
       message: 'Please select a valid donation type',
+    }),
+  branch: z
+    .string()
+    .min(1, 'Please select a branch')
+    .refine((val) => ['Boys', 'Girls'].includes(val), {
+      message: 'Please select a valid branch',
     }),
   date: z.string().min(1, 'Date is required'),
   amount: z
@@ -61,12 +69,14 @@ export function AddDonationModal({ open, onOpenChange }: AddDonationModalProps) 
       donorName: '',
       phoneNumber: '',
       type: '',
+      branch: '',
       date: getTodayDate(), // Today's date in YYYY-MM-DD format
       amount: 0,
     },
   });
 
   const watchedType = watch('type');
+  const watchedBranch = watch('branch');
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const onSubmit = async (data: DonationFormData) => {
@@ -128,7 +138,7 @@ export function AddDonationModal({ open, onOpenChange }: AddDonationModalProps) 
             <Select
               value={watchedType}
               onValueChange={(value) => {
-                setValue('type', value as 'Membership' | 'Sadka' | 'Jakat');
+                setValue('type', value as DonationType);
                 trigger('type'); // Trigger validation to clear error message
               }}
             >
@@ -136,12 +146,35 @@ export function AddDonationModal({ open, onOpenChange }: AddDonationModalProps) 
                 <SelectValue placeholder="Select donation type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Membership">Membership</SelectItem>
-                <SelectItem value="Sadka">Sadka</SelectItem>
-                <SelectItem value="Jakat">Jakat</SelectItem>
+                {donationTypeOptions.map((donationType) => (
+                  <SelectItem key={donationType} value={donationType}>
+                    {donationType}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             {errors.type && <p className="text-sm text-red-500">{errors.type.message}</p>}
+          </div>
+
+          {/* Branch */}
+          <div className="space-y-2">
+            <Label htmlFor="branch">Branch</Label>
+            <Select
+              value={watchedBranch}
+              onValueChange={(value) => {
+                setValue('branch', value as 'Boys' | 'Girls');
+                trigger('branch');
+              }}
+            >
+              <SelectTrigger className={errors.branch ? 'border-red-500' : ''}>
+                <SelectValue placeholder="Select branch" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Boys">Boys</SelectItem>
+                <SelectItem value="Girls">Girls</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.branch && <p className="text-sm text-red-500">{errors.branch.message}</p>}
           </div>
 
           {/* Date */}

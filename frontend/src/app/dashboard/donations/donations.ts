@@ -1,11 +1,16 @@
+export const donationTypeOptions = ['Sadaqah', 'Zakat', 'Membership', 'Others'] as const;
+
+export type DonationType = (typeof donationTypeOptions)[number];
+
 export type Donation = {
   id: string;
   donorName: string;
   phoneNumber: string;
-  type: 'Membership' | 'Sadka' | 'Jakat';
+  type: DonationType;
   addedBy: string;
   date: string;
   amount: number;
+  branch: 'Boys' | 'Girls';
 };
 
 export const allDonations: Donation[] = [
@@ -17,78 +22,87 @@ export const allDonations: Donation[] = [
     addedBy: 'Admin User',
     date: '2024-01-15',
     amount: 5000,
+    branch: 'Boys',
   },
   {
     id: '2',
     donorName: 'Fatima Begum',
     phoneNumber: '+880 1812 345679',
-    type: 'Sadka',
+    type: 'Sadaqah',
     addedBy: 'Admin User',
     date: '2024-01-14',
     amount: 2000,
+    branch: 'Girls',
   },
   {
     id: '3',
     donorName: 'Mohammad Ali',
     phoneNumber: '+880 1912 345680',
-    type: 'Jakat',
+    type: 'Zakat',
     addedBy: 'Admin User',
     date: '2024-01-13',
     amount: 10000,
+    branch: 'Boys',
   },
   {
     id: '4',
     donorName: 'Ayesha Khan',
     phoneNumber: '+880 1713 345681',
-    type: 'Membership',
+    type: 'Others',
     addedBy: 'Admin User',
     date: '2024-01-12',
     amount: 3000,
+    branch: 'Girls',
   },
   {
     id: '5',
     donorName: 'Abdul Karim',
     phoneNumber: '+880 1813 345682',
-    type: 'Sadka',
+    type: 'Sadaqah',
     addedBy: 'Admin User',
     date: '2024-01-11',
     amount: 1500,
+    branch: 'Boys',
   },
   {
     id: '6',
     donorName: 'Nusrat Jahan',
     phoneNumber: '+880 1913 345683',
-    type: 'Jakat',
+    type: 'Zakat',
     addedBy: 'Admin User',
     date: '2024-01-10',
     amount: 7500,
+    branch: 'Girls',
   },
   {
     id: '7',
     donorName: 'Hasan Mahmud',
     phoneNumber: '+880 1714 345684',
-    type: 'Membership',
+    type: 'Others',
     addedBy: 'Admin User',
     date: '2024-01-09',
     amount: 4000,
+    branch: 'Boys',
   },
   {
     id: '8',
     donorName: 'Rashida Khatun',
     phoneNumber: '+880 1814 345685',
-    type: 'Sadka',
+    type: 'Sadaqah',
     addedBy: 'Admin User',
     date: '2024-01-08',
     amount: 2500,
+    branch: 'Girls',
   },
   {
     id: '9',
     donorName: 'Ibrahim Hossain',
     phoneNumber: '+880 1914 345686',
-    type: 'Jakat',
+    type: 'Zakat',
     addedBy: 'Admin User',
     date: '2024-01-07',
     amount: 12000,
+    branch: 'Boys',
   },
   {
     id: '10',
@@ -98,50 +112,56 @@ export const allDonations: Donation[] = [
     addedBy: 'Admin User',
     date: '2024-01-06',
     amount: 3500,
+    branch: 'Girls',
   },
   {
     id: '11',
     donorName: 'Kamal Uddin',
     phoneNumber: '+880 1815 345688',
-    type: 'Sadka',
+    type: 'Sadaqah',
     addedBy: 'Admin User',
     date: '2024-01-05',
     amount: 1800,
+    branch: 'Boys',
   },
   {
     id: '12',
     donorName: 'Nasima Begum',
     phoneNumber: '+880 1915 345689',
-    type: 'Jakat',
+    type: 'Zakat',
     addedBy: 'Admin User',
     date: '2024-01-04',
     amount: 9000,
+    branch: 'Girls',
   },
   {
     id: '13',
     donorName: 'Rafiqul Islam',
     phoneNumber: '+880 1716 345690',
-    type: 'Membership',
+    type: 'Others',
     addedBy: 'Admin User',
     date: '2024-01-03',
     amount: 6000,
+    branch: 'Boys',
   },
   {
     id: '14',
     donorName: 'Shahida Parvin',
     phoneNumber: '+880 1816 345691',
-    type: 'Sadka',
+    type: 'Sadaqah',
     addedBy: 'Admin User',
     date: '2024-01-02',
     amount: 2200,
+    branch: 'Girls',
   },
   {
     id: '15',
     donorName: 'Mizanur Rahman',
     phoneNumber: '+880 1916 345692',
-    type: 'Jakat',
+    type: 'Zakat',
     addedBy: 'Admin User',
     date: '2024-01-01',
     amount: 15000,
+    branch: 'Boys',
   },
 ];

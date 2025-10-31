@@ -53,7 +53,6 @@ export function AddAdminModal({ open, onOpenChange }: AddAdminModalProps) {
   const [permissions, setPermissions] = useState({
     is_access_boys_section: false,
     is_access_girls_section: false,
-    is_access_residential_section: false,
   });
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
@@ -76,7 +75,6 @@ export function AddAdminModal({ open, onOpenChange }: AddAdminModalProps) {
         role: AdminRole.ADMIN,
         access_boys_section: permissions.is_access_boys_section,
         access_girls_section: permissions.is_access_girls_section,
-        access_residential_section: permissions.is_access_residential_section,
       }).unwrap();
 
       // Store password and show password modal
@@ -98,7 +96,6 @@ export function AddAdminModal({ open, onOpenChange }: AddAdminModalProps) {
     setPermissions({
       is_access_boys_section: false,
       is_access_girls_section: false,
-      is_access_residential_section: false,
     });
     router.refresh();
   };
@@ -219,22 +216,6 @@ export function AddAdminModal({ open, onOpenChange }: AddAdminModalProps) {
                       />
                       <Label htmlFor="girls-section" className="text-sm font-normal cursor-pointer">
                         Girls Section
-                      </Label>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="residential-section"
-                        checked={permissions.is_access_residential_section}
-                        onCheckedChange={() =>
-                          handlePermissionChange('is_access_residential_section')
-                        }
-                      />
-                      <Label
-                        htmlFor="residential-section"
-                        className="text-sm font-normal cursor-pointer"
-                      >
-                        Residential Section
                       </Label>
                     </div>
                   </div>

@@ -7,7 +7,6 @@ export type AdminDocument = Document & {
   role: UserRole;
   access_boys_section: boolean;
   access_girls_section: boolean;
-  access_residential_section: boolean;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -17,7 +16,6 @@ export type CreateAdminInput = {
   employee_id: string;
   access_boys_section: boolean;
   access_girls_section: boolean;
-  access_residential_section: boolean;
 };
 
 export type AdminListItem = {

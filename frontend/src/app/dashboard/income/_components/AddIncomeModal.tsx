@@ -31,9 +31,16 @@ const incomeSchema = z.object({
   type: z
     .string()
     .min(1, 'Please select an income type')
-    .refine((val) => val && ['Student Fee', 'Book Sell', 'Other'].includes(val), {
-      message: 'Please select a valid income type',
-    }),
+    .refine(
+      (val) =>
+        val &&
+        ['Admission Fee', 'Session Fee', "Students' Monthly Fee", 'Canteen', 'Others'].includes(
+          val,
+        ),
+      {
+        message: 'Please select a valid income type',
+      },
+    ),
   note: z.string().min(1, 'Note is required'),
   date: z.string().min(1, 'Date is required'),
   amount: z
@@ -139,9 +146,11 @@ export function AddIncomeModal({ open, onOpenChange }: AddIncomeModalProps) {
                       <SelectValue placeholder="Select income type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Student Fee">Student Fee</SelectItem>
-                      <SelectItem value="Book Sell">Book Sell</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
+                      <SelectItem value="Admission Fee">Admission Fee</SelectItem>
+                      <SelectItem value="Session Fee">Session Fee</SelectItem>
+                      <SelectItem value="Students' Monthly Fee">Students' Monthly Fee</SelectItem>
+                      <SelectItem value="Canteen">Canteen</SelectItem>
+                      <SelectItem value="Others">Others</SelectItem>
                     </SelectContent>
                   </Select>
                 )}

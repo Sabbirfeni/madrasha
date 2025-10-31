@@ -44,7 +44,7 @@ export function LoginForm() {
       router.push('/dashboard/overview');
       return;
     }
-    setError(result?.error || 'Invalid phone number or password. Please try again.');
+    setError('Invalid phone number or password.');
   };
 
   return (

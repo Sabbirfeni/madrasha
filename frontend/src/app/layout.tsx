@@ -22,7 +22,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Habrul Ummah',
+  title: 'Habrul Ummah Model Madrasah',
   description: 'A trusted institution for Islamic (religious) education.',
 };
 

@@ -16,23 +16,23 @@ import { ChartConfig, ChartContainer, ChartTooltipContent } from '@/components/u
 export const description = 'A linear line chart showing total per month';
 
 const chartData = [
-  { month: 'January', membership: 186, sadka: 120, jakat: 80 },
-  { month: 'February', membership: 305, sadka: 180, jakat: 200 },
-  { month: 'March', membership: 237, sadka: 150, jakat: 120 },
-  { month: 'April', membership: 73, sadka: 90, jakat: 190 },
-  { month: 'May', membership: 209, sadka: 140, jakat: 130 },
-  { month: 'June', membership: 214, sadka: 160, jakat: 140 },
-  { month: 'July', membership: 100, sadka: 50, jakat: 40 },
-  { month: 'August', membership: 280, sadka: 190, jakat: 170 },
-  { month: 'September', membership: 300, sadka: 200, jakat: 180 },
-  { month: 'October', membership: 320, sadka: 210, jakat: 200 },
-  { month: 'November', membership: 290, sadka: 180, jakat: 190 },
-  { month: 'December', membership: 310, sadka: 220, jakat: 210 },
+  { month: 'January', membership: 186, sadaqah: 120, zakat: 80, others: 60 },
+  { month: 'February', membership: 305, sadaqah: 180, zakat: 200, others: 90 },
+  { month: 'March', membership: 237, sadaqah: 150, zakat: 120, others: 70 },
+  { month: 'April', membership: 73, sadaqah: 90, zakat: 190, others: 50 },
+  { month: 'May', membership: 209, sadaqah: 140, zakat: 130, others: 85 },
+  { month: 'June', membership: 214, sadaqah: 160, zakat: 140, others: 95 },
+  { month: 'July', membership: 100, sadaqah: 50, zakat: 40, others: 30 },
+  { month: 'August', membership: 280, sadaqah: 190, zakat: 170, others: 110 },
+  { month: 'September', membership: 300, sadaqah: 200, zakat: 180, others: 120 },
+  { month: 'October', membership: 320, sadaqah: 210, zakat: 200, others: 130 },
+  { month: 'November', membership: 290, sadaqah: 180, zakat: 190, others: 100 },
+  { month: 'December', membership: 310, sadaqah: 220, zakat: 210, others: 140 },
 ];
 
 const totalChartData = chartData.map((item) => ({
   ...item,
-  total: item.membership + item.sadka + item.jakat,
+  total: item.membership + item.sadaqah + item.zakat + item.others,
 }));
 
 const chartConfig = {
@@ -66,9 +66,10 @@ export function DonationLineChart() {
                 if (!data) return null;
 
                 const tooltipPayload = [
+                  { name: 'Sadaqah', value: data.sadaqah },
+                  { name: 'Zakat', value: data.zakat },
                   { name: 'Membership', value: data.membership },
-                  { name: 'Sadka', value: data.sadka },
-                  { name: 'Jakat', value: data.jakat },
+                  { name: 'Others', value: data.others },
                   { name: 'Total', value: data.total },
                 ] as LineProps['data'][];
 

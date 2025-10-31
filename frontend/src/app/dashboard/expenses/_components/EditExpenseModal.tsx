@@ -25,7 +25,7 @@ const expenseSchema = z.object({
   branch: z
     .string()
     .min(1, 'Please select a branch')
-    .refine((val) => val && ['Boys', 'Girls', 'Hostel'].includes(val), {
+    .refine((val) => val && ['Boys', 'Girls'].includes(val), {
       message: 'Please select a valid branch',
     }),
   type: z
@@ -136,7 +136,6 @@ export function EditExpenseModal({ open, onOpenChange, expense }: EditExpenseMod
                     <SelectContent>
                       <SelectItem value="Boys">Boys</SelectItem>
                       <SelectItem value="Girls">Girls</SelectItem>
-                      <SelectItem value="Hostel">Hostel</SelectItem>
                     </SelectContent>
                   </Select>
                 )}

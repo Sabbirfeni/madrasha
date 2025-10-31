@@ -38,7 +38,7 @@ export type Student = {
   name: string;
   branch: 'Boys' | 'Girls';
   is_residential: boolean;
-  section: 'Nurani' | 'Kitab' | 'Najera';
+  section: 'Najera' | 'Hifz' | 'Nurani' | 'Kitab';
   class:
     | 'Shishu'
     | 'One'
@@ -88,13 +88,7 @@ export function StudentListTable<TData, TValue>({
     }
 
     if (branchFilter) {
-      if (branchFilter === 'Hostel') {
-        filtered = filtered.filter(
-          (student) => student.branch === 'Boys' && student.is_residential === true,
-        );
-      } else {
-        filtered = filtered.filter((student) => student.branch === branchFilter);
-      }
+      filtered = filtered.filter((student) => student.branch === branchFilter);
     }
     if (sectionFilter) {
       filtered = filtered.filter((student) => student.section === sectionFilter);
@@ -169,12 +163,6 @@ export function StudentListTable<TData, TValue>({
               >
                 Girls
               </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={branchFilter === 'Hostel'}
-                onCheckedChange={() => setBranchFilter(branchFilter === 'Hostel' ? '' : 'Hostel')}
-              >
-                Hostel
-              </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -192,6 +180,18 @@ export function StudentListTable<TData, TValue>({
                 All Sections
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
+                checked={sectionFilter === 'Najera'}
+                onCheckedChange={() => setSectionFilter(sectionFilter === 'Najera' ? '' : 'Najera')}
+              >
+                Najera
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={sectionFilter === 'Hifz'}
+                onCheckedChange={() => setSectionFilter(sectionFilter === 'Hifz' ? '' : 'Hifz')}
+              >
+                Hifz
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
                 checked={sectionFilter === 'Nurani'}
                 onCheckedChange={() => setSectionFilter(sectionFilter === 'Nurani' ? '' : 'Nurani')}
               >
@@ -202,12 +202,6 @@ export function StudentListTable<TData, TValue>({
                 onCheckedChange={() => setSectionFilter(sectionFilter === 'Kitab' ? '' : 'Kitab')}
               >
                 Kitab
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={sectionFilter === 'Najera'}
-                onCheckedChange={() => setSectionFilter(sectionFilter === 'Najera' ? '' : 'Najera')}
-              >
-                Najera
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
