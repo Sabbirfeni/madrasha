@@ -1,6 +1,9 @@
 'use client';
 
+import { BRANCH_LABELS } from '@/domain/branches/lib/labels';
+import { INCOME_TYPE_LABELS, IncomeType as IncomeTypeEnum } from '@/domain/income';
 import { formatDate, getCurrentYear } from '@/lib/date-utils';
+import type { Income } from '@/services/income/types';
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -34,15 +37,7 @@ import {
 import { AddIncomeModal } from './AddIncomeModal';
 import { EditIncomeModal } from './EditIncomeModal';
 
-export type Income = {
-  id: string;
-  branch: 'Boys' | 'Girls';
-  type: 'Admission Fee' | 'Session Fee' | "Students' Monthly Fee" | 'Canteen' | 'Others';
-  note: string;
-  addedBy: string;
-  date: string;
-  amount: number;
-};
+export type { Income };
 
 interface IncomeListTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -63,8 +58,8 @@ export function IncomeListTable<TData, TValue>({
 
   // Search and filter states
   const [noteSearch, setNoteSearch] = React.useState<string>('');
-  const [branchFilter, setBranchFilter] = React.useState<string>('');
-  const [typeFilter, setTypeFilter] = React.useState<string>('');
+  const [branchFilter, setBranchFilter] = React.useState<number | ''>('');
+  const [typeFilter, setTypeFilter] = React.useState<number | ''>('');
   const [monthFilter, setMonthFilter] = React.useState<string>('');
   const [yearFilter, setYearFilter] = React.useState<string>('');
 
@@ -78,7 +73,7 @@ export function IncomeListTable<TData, TValue>({
 
     if (noteSearch) {
       filtered = filtered.filter((income) =>
-        income.note.toLowerCase().includes(noteSearch.toLowerCase()),
+        income.notes.toLowerCase().includes(noteSearch.toLowerCase()),
       );
     }
 
@@ -92,7 +87,7 @@ export function IncomeListTable<TData, TValue>({
 
     if (monthFilter) {
       filtered = filtered.filter((income) => {
-        const incomeDate = new Date(income.date);
+        const incomeDate = new Date(income.income_date);
         const incomeMonth = incomeDate.getMonth() + 1; // getMonth() returns 0-11
         return incomeMonth === Number.parseInt(monthFilter);
       });
@@ -100,7 +95,7 @@ export function IncomeListTable<TData, TValue>({
 
     if (yearFilter) {
       filtered = filtered.filter((income) => {
-        const incomeDate = new Date(income.date);
+        const incomeDate = new Date(income.income_date);
         return incomeDate.getFullYear() === Number.parseInt(yearFilter);
       });
     }
@@ -194,7 +189,7 @@ export function IncomeListTable<TData, TValue>({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="h-9 px-3 bg-transparent">
-                {branchFilter || 'Branch'}
+                {branchFilter ? BRANCH_LABELS[branchFilter as 1 | 2] : 'Branch'}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -205,14 +200,14 @@ export function IncomeListTable<TData, TValue>({
                 All Branches
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={branchFilter === 'Boys'}
-                onCheckedChange={() => setBranchFilter(branchFilter === 'Boys' ? '' : 'Boys')}
+                checked={branchFilter === 1}
+                onCheckedChange={() => setBranchFilter(branchFilter === 1 ? '' : 1)}
               >
                 Boys
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={branchFilter === 'Girls'}
-                onCheckedChange={() => setBranchFilter(branchFilter === 'Girls' ? '' : 'Girls')}
+                checked={branchFilter === 2}
+                onCheckedChange={() => setBranchFilter(branchFilter === 2 ? '' : 2)}
               >
                 Girls
               </DropdownMenuCheckboxItem>
@@ -222,7 +217,7 @@ export function IncomeListTable<TData, TValue>({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="h-9 px-3 bg-transparent">
-                {typeFilter || 'Type'}
+                {typeFilter ? INCOME_TYPE_LABELS[typeFilter as IncomeTypeEnum] : 'Type'}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -232,23 +227,18 @@ export function IncomeListTable<TData, TValue>({
               >
                 All Types
               </DropdownMenuCheckboxItem>
-              {(
-                [
-                  'Admission Fee',
-                  'Session Fee',
-                  "Students' Monthly Fee",
-                  'Canteen',
-                  'Others',
-                ] satisfies Income['type'][]
-              ).map((typeOption) => (
-                <DropdownMenuCheckboxItem
-                  key={typeOption}
-                  checked={typeFilter === typeOption}
-                  onCheckedChange={() => setTypeFilter(typeFilter === typeOption ? '' : typeOption)}
-                >
-                  {typeOption}
-                </DropdownMenuCheckboxItem>
-              ))}
+              {Object.entries(INCOME_TYPE_LABELS).map(([value, label]) => {
+                const numValue = Number.parseInt(value) as IncomeTypeEnum;
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={value}
+                    checked={typeFilter === numValue}
+                    onCheckedChange={() => setTypeFilter(typeFilter === numValue ? '' : numValue)}
+                  >
+                    {label}
+                  </DropdownMenuCheckboxItem>
+                );
+              })}
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -397,41 +387,44 @@ export const incomeListTableColumns: ColumnDef<Income>[] = [
     accessorKey: 'type',
     header: 'Type',
     cell: ({ row }) => {
-      const type = row.getValue('type') as string;
-      const variantMap: Record<Income['type'], 'default' | 'secondary' | 'outline'> = {
-        'Admission Fee': 'default',
-        'Session Fee': 'secondary',
-        "Students' Monthly Fee": 'default',
-        Canteen: 'secondary',
-        Others: 'outline',
+      const type = row.getValue('type') as number;
+      const variantMap: Record<number, 'default' | 'secondary' | 'outline'> = {
+        [IncomeTypeEnum.ADMISSION_FEE]: 'default',
+        [IncomeTypeEnum.SESSION_FEE]: 'secondary',
+        [IncomeTypeEnum.STUDENTS_MONTHLY_FEE]: 'default',
+        [IncomeTypeEnum.CANTEEN]: 'secondary',
+        [IncomeTypeEnum.OTHERS]: 'outline',
       };
-      const variant =
-        (variantMap as Record<string, 'default' | 'secondary' | 'outline'>)[type] || 'outline';
-      return <Badge variant={variant}>{type}</Badge>;
+      const variant = variantMap[type] || 'outline';
+      const label = INCOME_TYPE_LABELS[type as IncomeTypeEnum] || 'Unknown';
+      return <Badge variant={variant}>{label}</Badge>;
     },
   },
   {
-    accessorKey: 'note',
+    accessorKey: 'notes',
     header: 'Note',
     cell: ({ row }) => {
-      const note = row.getValue('note') as string;
+      const notes = row.getValue('notes') as string;
       return (
-        <div className="max-w-xs truncate" title={note}>
-          {note}
+        <div className="max-w-xs truncate" title={notes}>
+          {notes}
         </div>
       );
     },
   },
   {
-    accessorKey: 'addedBy',
-    header: 'Added By',
-    cell: ({ row }) => <div className="text-sm">{row.getValue('addedBy')}</div>,
+    accessorKey: 'branch',
+    header: 'Branch',
+    cell: ({ row }) => {
+      const branch = row.getValue('branch') as number;
+      return <div className="text-sm">{BRANCH_LABELS[branch as 1 | 2]}</div>;
+    },
   },
   {
-    accessorKey: 'date',
+    accessorKey: 'income_date',
     header: 'Date',
     cell: ({ row }) => {
-      const date = row.getValue('date') as string;
+      const date = row.getValue('income_date') as string;
       return <div className="text-sm">{formatDate(date)}</div>;
     },
   },

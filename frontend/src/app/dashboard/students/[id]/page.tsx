@@ -1,10 +1,39 @@
 'use client';
 
+import { BRANCH_LABELS, Branch } from '@/domain/branches';
+import {
+  STUDENT_BLOOD_GROUP_LABELS,
+  STUDENT_BLOOD_GROUP_OPTIONS,
+  STUDENT_CLASS_LABELS,
+  STUDENT_CLASS_OPTIONS,
+  STUDENT_GENDER_LABELS,
+  STUDENT_GENDER_OPTIONS,
+  STUDENT_GROUP_LABELS,
+  STUDENT_GROUP_OPTIONS,
+  STUDENT_PROFILE_PLACEHOLDERS,
+  STUDENT_RESIDENTIAL_CATEGORY_FEES,
+  STUDENT_RESIDENTIAL_CATEGORY_LABELS,
+  STUDENT_RESIDENTIAL_CATEGORY_OPTIONS,
+  STUDENT_SECTION_LABELS,
+  STUDENT_SECTION_OPTIONS,
+  StudentClass,
+  StudentGender,
+  StudentGroup,
+  StudentResidentialCategory,
+  StudentSection,
+  buildStudentPayload,
+  parseStudentGenderLabel,
+} from '@/domain/students';
 import { formatDate } from '@/lib/date-utils';
+import { getStudentById, updateStudent } from '@/services/students';
 import { Camera, Edit2, Save, X } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
-import { useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import { useParams } from 'next/navigation';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -54,58 +83,23 @@ type StudentDetailsFormData = {
   guardian_permanent_location: string;
 };
 
-type ResidentialCategory = {
-  name: string;
-  fee: number;
-};
-
-const residentialCategories: ResidentialCategory[] = [
-  { name: 'Normal', fee: 3000 },
-  { name: 'Medium', fee: 5000 },
-  { name: 'VIP', fee: 8000 },
-];
-
 const NO_GROUP_OPTION_VALUE = '__no_group__';
 const NO_CLASS_OPTION_VALUE = '__no_class__';
-
-// Mock data
-const mockStudentData: StudentDetailsFormData = {
-  branch: 'Boys',
-  profile_image: '/diverse-student-boy.png',
-  full_name: 'Ahmad Rahman',
-  blood_group: 'A+',
-  birth_certificate_no: 'BC123456789',
-  gender: 'Male',
-  registration_date: '2024-01-15',
-  section_name: 'Nurani',
-  group_name: 'Mutawassitah',
-  class_name: 'Eight',
-  roll: '04',
-  current_location: 'Dhaka, Bangladesh',
-  permanent_location: 'Chittagong, Bangladesh',
-  day_care: true,
-  residential: true,
-  residential_category: 'Normal',
-
-  class_fee: 5000,
-  residential_fee: 3000,
-  webinars_amount: 2000,
-  total: 10000,
-
-  guardian_name: 'Abdul Rahman',
-  guardian_relation: 'Father',
-  phone_number: '01712-345678',
-  alternative_phone_number: '01712-987654',
-  guardian_current_location: 'Dhaka, Bangladesh',
-  guardian_permanent_location: 'Chittagong, Bangladesh',
-};
 
 export default function StudentDetailsPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const params = useParams<{ id: string }>();
+  const { data: session } = useSession();
+  const studentIdParam = params?.id;
+  const studentId = Array.isArray(studentIdParam)
+    ? (studentIdParam[0] ?? '')
+    : (studentIdParam ?? '');
 
   const {
     register,
@@ -114,33 +108,168 @@ export default function StudentDetailsPage() {
     setValue,
     reset,
     formState: { errors },
-  } = useForm<StudentDetailsFormData>({
-    defaultValues: mockStudentData,
-  });
+  } = useForm<StudentDetailsFormData>();
 
   const watchedValues = watch();
 
-  const onSubmit = async (data: StudentDetailsFormData) => {
-    setIsSaving(true);
+  const totalFee = Math.max(
+    0,
+    (Number(watchedValues.class_fee) || 0) +
+      (watchedValues.residential ? Number(watchedValues.residential_fee) || 0 : 0) -
+      (Number(watchedValues.webinars_amount) || 0),
+  );
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    console.log('Student data saved:', data);
-    setIsSaving(false);
-    setIsEditing(false);
+  const residentialCategoryLabel = watchedValues.residential_category
+    ? (STUDENT_RESIDENTIAL_CATEGORY_OPTIONS.find(
+        (option) => option.value === watchedValues.residential_category,
+      )?.label ?? watchedValues.residential_category)
+    : 'Not assigned';
+
+  const fetchStudent = useCallback(async () => {
+    if (!studentId) {
+      setErrorMessage('Student ID is required');
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const student = await getStudentById(studentId, {
+        accessToken: (session as typeof session & { accessToken?: string })?.accessToken,
+      });
+
+      if (!student) {
+        throw new Error('Student not found');
+      }
+
+      // Transform API response to form data
+      const formData: StudentDetailsFormData = {
+        branch: BRANCH_LABELS[student.branch as Branch] || 'Boys',
+        profile_image: student.profile_image || '',
+        full_name: student.fullname,
+        blood_group:
+          STUDENT_BLOOD_GROUP_LABELS[
+            student.blood_group as keyof typeof STUDENT_BLOOD_GROUP_LABELS
+          ] || student.blood_group,
+        birth_certificate_no: student.birth_certificate_no,
+        gender: STUDENT_GENDER_LABELS[student.gender as StudentGender] || student.gender,
+        registration_date: student.registration_date.split('T')[0] || '',
+        section_name: student.enrollment?.section
+          ? STUDENT_SECTION_LABELS[student.enrollment.section as StudentSection]
+          : '',
+        group_name: student.enrollment?.group
+          ? STUDENT_GROUP_LABELS[student.enrollment.group as StudentGroup]
+          : undefined,
+        class_name: student.enrollment?.class
+          ? STUDENT_CLASS_LABELS[student.enrollment.class as StudentClass]
+          : undefined,
+        roll: student.enrollment?.roll?.toString() || '',
+        current_location: student.current_location,
+        permanent_location: student.permanent_location,
+        day_care: student.is_day_care || false,
+        residential: student.is_residential || false,
+        residential_category: student.residential_category
+          ? STUDENT_RESIDENTIAL_CATEGORY_LABELS[
+              student.residential_category as StudentResidentialCategory
+            ]
+          : '',
+        class_fee: student.enrollment?.fee || 0,
+        residential_fee: student.residential_fee || 0,
+        webinars_amount: student.waiver_amount || 0,
+        total: 0,
+        guardian_name: student.guardian?.guardian_name || '',
+        guardian_relation: student.guardian?.guardian_relation || '',
+        phone_number: student.guardian?.phone_number || '',
+        alternative_phone_number: '',
+        guardian_current_location: student.guardian?.current_location || '',
+        guardian_permanent_location: student.guardian?.permanent_location || '',
+      };
+
+      reset(formData);
+    } catch {
+      setErrorMessage('Failed to load student data');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [studentId, session, reset]);
+
+  useEffect(() => {
+    if (session) {
+      fetchStudent();
+    }
+  }, [session, fetchStudent]);
+
+  useEffect(() => {
+    if (!watchedValues.residential) {
+      setValue('residential_category', '');
+      setValue('residential_fee', 0);
+    }
+  }, [watchedValues.residential, setValue]);
+
+  useEffect(() => {
+    setValue('total', totalFee);
+  }, [totalFee, setValue]);
+
+  const onSubmit = async (data: StudentDetailsFormData) => {
+    if (!studentId) {
+      setErrorMessage('Invalid student identifier');
+      return;
+    }
+
+    setIsSaving(true);
+    setErrorMessage(null);
+
+    try {
+      const genderEnum = parseStudentGenderLabel(data.gender) ?? StudentGender.MALE;
+
+      const profileImage =
+        data.profile_image && data.profile_image.length > 0
+          ? data.profile_image
+          : STUDENT_PROFILE_PLACEHOLDERS[genderEnum];
+
+      setValue('profile_image', profileImage);
+
+      const payload = buildStudentPayload({
+        ...data,
+        profile_image: profileImage,
+        waiver_amount: data.webinars_amount,
+      });
+
+      const { error } = await updateStudent(studentId, payload, {
+        accessToken: (session as typeof session & { accessToken?: string })?.accessToken,
+      });
+
+      if (error) {
+        throw new Error(error.statusText || 'Failed to update student');
+      }
+
+      setIsEditing(false);
+      toast.success('Student updated successfully');
+      await fetchStudent();
+    } catch {
+      setErrorMessage('Failed to update student');
+      toast.error('Failed to update student');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleEdit = () => {
     setIsEditing(true);
+    setErrorMessage(null);
   };
 
   const handleSave = handleSubmit(onSubmit);
 
-  const handleResidentialCategoryChange = (categoryName: string) => {
-    setValue('residential_category', categoryName);
-    const selectedCategory = residentialCategories.find((cat) => cat.name === categoryName);
-    if (selectedCategory) {
-      setValue('residential_fee', selectedCategory.fee);
-    }
+  const handleResidentialCategoryChange = (categoryValue: string) => {
+    const category =
+      (categoryValue as StudentResidentialCategory) ?? StudentResidentialCategory.NORMAL;
+    setValue('residential_category', category, { shouldValidate: true });
+    setValue('residential_fee', STUDENT_RESIDENTIAL_CATEGORY_FEES[category] ?? 0, {
+      shouldValidate: true,
+    });
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -163,16 +292,21 @@ export default function StudentDetailsPage() {
   };
 
   const handleCancel = () => {
-    reset();
+    fetchStudent();
     setImagePreview(null);
+    setErrorMessage(null);
     setIsEditing(false);
   };
 
-  // Calculate total fee
-  const totalFee =
-    (watchedValues.class_fee || 0) +
-    (watchedValues.residential ? watchedValues.residential_fee || 0 : 0) -
-    (watchedValues.webinars_amount || 0);
+  if (isLoading) {
+    return (
+      <div className="container mx-auto space-y-6">
+        <div className="flex items-center justify-center py-12">
+          <p className="text-muted-foreground">Loading student data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto space-y-6">
@@ -239,6 +373,16 @@ export default function StudentDetailsPage() {
         </div>
       </div>
 
+      {errorMessage && (
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardContent>
+            <div className="flex items-center gap-2 text-destructive py-2">
+              <p className="text-sm font-medium">{errorMessage}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* General Information Card */}
       <Card>
         <CardHeader>
@@ -300,14 +444,11 @@ export default function StudentDetailsPage() {
                     <SelectValue placeholder="Select blood group" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="A+">A+</SelectItem>
-                    <SelectItem value="A-">A-</SelectItem>
-                    <SelectItem value="B+">B+</SelectItem>
-                    <SelectItem value="B-">B-</SelectItem>
-                    <SelectItem value="AB+">AB+</SelectItem>
-                    <SelectItem value="AB-">AB-</SelectItem>
-                    <SelectItem value="O+">O+</SelectItem>
-                    <SelectItem value="O-">O-</SelectItem>
+                    {STUDENT_BLOOD_GROUP_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               ) : (
@@ -347,8 +488,11 @@ export default function StudentDetailsPage() {
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Male">Male</SelectItem>
-                    <SelectItem value="Female">Female</SelectItem>
+                    {STUDENT_GENDER_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               ) : (
@@ -386,10 +530,11 @@ export default function StudentDetailsPage() {
                     <SelectValue placeholder="Select section" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Najera">Najera</SelectItem>
-                    <SelectItem value="Hifz">Hifz</SelectItem>
-                    <SelectItem value="Nurani">Nurani</SelectItem>
-                    <SelectItem value="Kitab">Kitab</SelectItem>
+                    {STUDENT_SECTION_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.label}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               ) : (
@@ -415,10 +560,13 @@ export default function StudentDetailsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={NO_GROUP_OPTION_VALUE}>No group</SelectItem>
-                    <SelectItem value="Ibtida'iyyah">Ibtida&apos;iyyah</SelectItem>
-                    <SelectItem value="Thanawiyyah 'Ulyā">Thanawiyyah &apos;Ulyā</SelectItem>
-                    <SelectItem value="Ālimiyyah">Ālimiyyah</SelectItem>
-                    <SelectItem value="Mutawassitah">Mutawassitah</SelectItem>
+                    {STUDENT_GROUP_OPTIONS.filter(
+                      (option) => option.value !== StudentGroup.NONE,
+                    ).map((option) => (
+                      <SelectItem key={option.value} value={option.label}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               ) : (
@@ -444,17 +592,11 @@ export default function StudentDetailsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={NO_CLASS_OPTION_VALUE}>No class</SelectItem>
-                    <SelectItem value="Shishu">Shishu</SelectItem>
-                    <SelectItem value="One">One</SelectItem>
-                    <SelectItem value="Two">Two</SelectItem>
-                    <SelectItem value="Three">Three</SelectItem>
-                    <SelectItem value="Four">Four</SelectItem>
-                    <SelectItem value="Five">Five</SelectItem>
-                    <SelectItem value="Six">Six</SelectItem>
-                    <SelectItem value="Seven">Seven</SelectItem>
-                    <SelectItem value="Eight">Eight</SelectItem>
-                    <SelectItem value="Nine">Nine</SelectItem>
-                    <SelectItem value="Ten">Ten</SelectItem>
+                    {STUDENT_CLASS_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.label}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               ) : (
@@ -575,16 +717,17 @@ export default function StudentDetailsPage() {
                       <SelectValue placeholder="Select residential category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {residentialCategories.map((category) => (
-                        <SelectItem key={category.name} value={category.name}>
-                          {category.name} (৳{category.fee.toLocaleString()})
+                      {STUDENT_RESIDENTIAL_CATEGORY_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label} ( ৳
+                          {STUDENT_RESIDENTIAL_CATEGORY_FEES[option.value].toLocaleString()})
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 ) : (
                   <div className="p-2 text-sm bg-muted/40 rounded-md">
-                    {watchedValues.residential_category}
+                    {residentialCategoryLabel}
                   </div>
                 )}
               </div>

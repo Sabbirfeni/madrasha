@@ -1,13 +1,12 @@
 'use client';
 
-import { LogOut, MoreVertical, User } from 'lucide-react';
-import { signOut } from 'next-auth/react';
+import { LogOut, MoreVertical } from 'lucide-react';
+import { signOut, useSession } from 'next-auth/react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -20,16 +19,23 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string;
-    phone: string;
-    avatar: string;
-  };
-}) {
+export function NavUser() {
+  const { data: session, status } = useSession();
   const { isMobile } = useSidebar();
+
+  const admin = session?.admin;
+  const name = admin?.fullname ?? session?.user?.name ?? 'Admin';
+  const phone = admin?.phone_number ?? session?.user?.email ?? '—';
+  const avatar = session?.user?.image ?? '/avatars/shadcn.jpg';
+
+  const initials = name
+    .split(' ')
+    .filter(Boolean)
+    .map((part) => part[0]?.toUpperCase())
+    .join('')
+    .slice(0, 2);
+
+  const isLoading = status === 'loading';
 
   const handleLogout = () => {
     signOut({ callbackUrl: '/login' });
@@ -45,12 +51,14 @@ export function NavUser({
               className="bg-sidebar-accent text-sidebar-accent-foreground cursor-pointer"
             >
               <Avatar className="h-8 w-8 rounded-lg grayscale">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                <AvatarImage src={avatar} alt={name} />
+                <AvatarFallback className="rounded-lg">{initials || 'AD'}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
-                <span className="text-muted-foreground truncate text-xs">{user.phone}</span>
+                <span className="truncate font-medium">{isLoading ? 'Loading…' : name}</span>
+                <span className="text-muted-foreground truncate text-xs">
+                  {isLoading ? '' : phone}
+                </span>
               </div>
               <MoreVertical className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -64,22 +72,17 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  <AvatarImage src={avatar} alt={name} />
+                  <AvatarFallback className="rounded-lg">{initials || 'AD'}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name} </span>
-                  <span className="text-muted-foreground truncate text-xs">{user.phone}</span>
+                  <span className="truncate font-medium">{isLoading ? 'Loading…' : name}</span>
+                  <span className="text-muted-foreground truncate text-xs">
+                    {isLoading ? '' : phone}
+                  </span>
                 </div>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
-                Account
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />

@@ -30,11 +30,6 @@ import NavMain from './NavMain';
 import { NavUser } from './NavUser';
 
 const data = {
-  user: {
-    name: 'Admin Name',
-    phone: '+880 1843 676171',
-    avatar: '/avatars/shadcn.jpg',
-  },
   navMain: [
     {
       title: 'Overview',
@@ -101,7 +96,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser />
       </SidebarFooter>
     </Sidebar>
   );

@@ -3,6 +3,8 @@ import systemRoutes from "./system.routes";
 import authRoutes from "./auth.routes";
 import adminRoutes from "./admin.routes";
 import employeeRoutes from "./employee.routes";
+import studentRoutes from "./student.routes";
+import incomeRoutes from "./income.routes";
 import { authenticate } from "../middlewares/auth/authenticate";
 import { asyncHandler } from "../utils/asyncHandler";
 
@@ -17,5 +19,7 @@ router.use(asyncHandler(authenticate));
 
 router.use("/admins", adminRoutes);
 router.use("/employees", employeeRoutes);
+router.use("/students", studentRoutes);
+router.use("/incomes", incomeRoutes);
 
 export default router;
