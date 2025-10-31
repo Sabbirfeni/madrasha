@@ -5,7 +5,13 @@ export type Income = {
   amount: number;
   income_date: string;
   notes: string;
-  admin_id: string;
+  admin_id: {
+    _id: string;
+    employee_id: {
+      _id: string;
+      fullname: string;
+    };
+  };
   createdAt: string;
   updatedAt: string;
 };

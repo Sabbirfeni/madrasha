@@ -1,10 +1,26 @@
-'use client';
+import { authOptions } from '@/lib/auth';
+import { getDonations } from '@/services/donation';
+import { getServerSession } from 'next-auth';
 
 import { DonationListTable, donationListTableColumns } from './_components/DonationListTable';
-import { allDonations } from './donations';
 
-export default function DonationsPage() {
+const DonationsPage = async () => {
+  const session = await getServerSession(authOptions);
+  const response = await getDonations({
+    accessToken: (session as typeof session & { accessToken?: string })?.accessToken,
+  });
+
+  if (!response) return;
+
   return (
-    <DonationListTable columns={donationListTableColumns} data={allDonations} title="Donations" />
+    <main className="container mx-auto">
+      <DonationListTable
+        columns={donationListTableColumns}
+        data={response.docs}
+        title="Donations"
+      />
+    </main>
   );
-}
+};
+
+export default DonationsPage;

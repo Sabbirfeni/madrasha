@@ -18,7 +18,13 @@ export type IncomeListItem = {
   amount: number;
   income_date: Date;
   notes: string;
-  admin_id: string;
+  admin_id: {
+    _id: string;
+    employee_id: {
+      _id: string;
+      fullname: string;
+    };
+  };
   createdAt: Date;
   updatedAt: Date;
 };
