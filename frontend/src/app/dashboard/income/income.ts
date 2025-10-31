@@ -1,7 +1,7 @@
 export type Income = {
   id: string;
   branch: 'Boys' | 'Girls';
-  type: 'Student Fee' | 'Book Sell' | 'Other';
+  type: 'Admission Fee' | 'Session Fee' | "Students' Monthly Fee" | 'Canteen' | 'Others';
   note: string;
   addedBy: string;
   date: string;
@@ -12,8 +12,8 @@ export const allIncomes: Income[] = [
   {
     id: '1',
     branch: 'Boys',
-    type: 'Student Fee',
-    note: 'Monthly fee collection from students.',
+    type: "Students' Monthly Fee",
+    note: 'Monthly tuition fees collected from the boys branch.',
     addedBy: 'Admin User',
     date: '2024-01-15',
     amount: 25000,
@@ -21,8 +21,8 @@ export const allIncomes: Income[] = [
   {
     id: '2',
     branch: 'Boys',
-    type: 'Book Sell',
-    note: 'Islamic books and study materials sold',
+    type: 'Admission Fee',
+    note: 'Admission charges for new students joining mid-year.',
     addedBy: 'Admin User',
     date: '2024-01-14',
     amount: 5000,
@@ -30,8 +30,8 @@ export const allIncomes: Income[] = [
   {
     id: '3',
     branch: 'Girls',
-    type: 'Student Fee',
-    note: 'Admission fee collection',
+    type: 'Session Fee',
+    note: 'Session renewal fees for the academic term.',
     addedBy: 'Admin User',
     date: '2024-01-13',
     amount: 15000,
@@ -39,8 +39,8 @@ export const allIncomes: Income[] = [
   {
     id: '4',
     branch: 'Boys',
-    type: 'Other',
-    note: 'Fundraising event proceeds',
+    type: 'Canteen',
+    note: 'Canteen snack sales during events.',
     addedBy: 'Admin User',
     date: '2024-01-12',
     amount: 8000,
@@ -48,8 +48,8 @@ export const allIncomes: Income[] = [
   {
     id: '5',
     branch: 'Girls',
-    type: 'Book Sell',
-    note: 'Quran and Hadith books sold',
+    type: 'Admission Fee',
+    note: 'Admission processing fees for transfer students.',
     addedBy: 'Admin User',
     date: '2024-01-11',
     amount: 3200,
@@ -57,8 +57,8 @@ export const allIncomes: Income[] = [
   {
     id: '6',
     branch: 'Boys',
-    type: 'Student Fee',
-    note: 'Transportation fee collection',
+    type: 'Session Fee',
+    note: 'Session fees collected for exam season.',
     addedBy: 'Admin User',
     date: '2024-01-10',
     amount: 12000,
@@ -66,8 +66,8 @@ export const allIncomes: Income[] = [
   {
     id: '7',
     branch: 'Girls',
-    type: 'Other',
-    note: 'Cafeteria income',
+    type: 'Canteen',
+    note: 'Cafeteria revenue from daily sales.',
     addedBy: 'Admin User',
     date: '2024-01-09',
     amount: 4500,
@@ -75,8 +75,8 @@ export const allIncomes: Income[] = [
   {
     id: '8',
     branch: 'Boys',
-    type: 'Book Sell',
-    note: 'Educational materials and stationery',
+    type: 'Others',
+    note: 'Sale of educational materials and stationery items.',
     addedBy: 'Admin User',
     date: '2024-01-08',
     amount: 2800,
@@ -84,8 +84,8 @@ export const allIncomes: Income[] = [
   {
     id: '9',
     branch: 'Girls',
-    type: 'Student Fee',
-    note: 'Monthly tuition fee',
+    type: "Students' Monthly Fee",
+    note: 'Monthly tuition fees collected from the girls branch.',
     addedBy: 'Admin User',
     date: '2024-01-07',
     amount: 18000,
@@ -93,8 +93,8 @@ export const allIncomes: Income[] = [
   {
     id: '10',
     branch: 'Boys',
-    type: 'Other',
-    note: 'Guest lecture fee collection',
+    type: 'Others',
+    note: 'Guest lecture ticket sales.',
     addedBy: 'Admin User',
     date: '2024-01-06',
     amount: 3500,
@@ -102,8 +102,8 @@ export const allIncomes: Income[] = [
   {
     id: '11',
     branch: 'Girls',
-    type: 'Book Sell',
-    note: 'Religious literature sales',
+    type: 'Admission Fee',
+    note: 'Admission packet purchases for applicants.',
     addedBy: 'Admin User',
     date: '2024-01-05',
     amount: 4200,
@@ -111,8 +111,8 @@ export const allIncomes: Income[] = [
   {
     id: '12',
     branch: 'Boys',
-    type: 'Student Fee',
-    note: 'Examination fee collection',
+    type: 'Session Fee',
+    note: 'Examination session fees received from students.',
     addedBy: 'Admin User',
     date: '2024-01-04',
     amount: 9500,
@@ -120,8 +120,8 @@ export const allIncomes: Income[] = [
   {
     id: '13',
     branch: 'Girls',
-    type: 'Other',
-    note: 'Workshop and seminar fees',
+    type: 'Others',
+    note: 'Workshop and seminar registration fees.',
     addedBy: 'Admin User',
     date: '2024-01-03',
     amount: 6200,
@@ -129,8 +129,8 @@ export const allIncomes: Income[] = [
   {
     id: '14',
     branch: 'Boys',
-    type: 'Book Sell',
-    note: 'Arabic learning books sold',
+    type: 'Admission Fee',
+    note: 'Admission documentation charges.',
     addedBy: 'Admin User',
     date: '2024-01-02',
     amount: 3800,
@@ -138,8 +138,8 @@ export const allIncomes: Income[] = [
   {
     id: '15',
     branch: 'Girls',
-    type: 'Student Fee',
-    note: 'Library membership fee',
+    type: 'Session Fee',
+    note: 'Library session fees collected for renewals.',
     addedBy: 'Admin User',
     date: '2024-01-01',
     amount: 1500,
@@ -147,8 +147,8 @@ export const allIncomes: Income[] = [
   {
     id: '16',
     branch: 'Boys',
-    type: 'Other',
-    note: 'Photocopy and printing services',
+    type: 'Others',
+    note: 'Photocopy and printing service charges.',
     addedBy: 'Admin User',
     date: '2023-12-31',
     amount: 2100,
@@ -156,8 +156,8 @@ export const allIncomes: Income[] = [
   {
     id: '17',
     branch: 'Girls',
-    type: 'Book Sell',
-    note: 'Islamic calendar and prayer books',
+    type: 'Canteen',
+    note: 'Seasonal canteen stall earnings.',
     addedBy: 'Admin User',
     date: '2023-12-30',
     amount: 1800,
@@ -165,8 +165,8 @@ export const allIncomes: Income[] = [
   {
     id: '18',
     branch: 'Boys',
-    type: 'Student Fee',
-    note: 'Hostel accommodation fee',
+    type: "Students' Monthly Fee",
+    note: 'Hostel accommodation monthly dues.',
     addedBy: 'Admin User',
     date: '2023-12-29',
     amount: 22000,
@@ -174,8 +174,8 @@ export const allIncomes: Income[] = [
   {
     id: '19',
     branch: 'Girls',
-    type: 'Other',
-    note: 'Special event ticket sales',
+    type: 'Others',
+    note: 'Special event ticket sales.',
     addedBy: 'Admin User',
     date: '2023-12-28',
     amount: 7500,
@@ -183,8 +183,8 @@ export const allIncomes: Income[] = [
   {
     id: '20',
     branch: 'Boys',
-    type: 'Book Sell',
-    note: 'Islamic history and biography books',
+    type: 'Admission Fee',
+    note: 'Late admission form fees.',
     addedBy: 'Admin User',
     date: '2023-12-27',
     amount: 2900,

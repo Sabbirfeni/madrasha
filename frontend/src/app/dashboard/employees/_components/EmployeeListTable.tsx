@@ -160,16 +160,6 @@ export function EmployeeListTable<TData, TValue>({
                 All Types
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={employmentTypeFilter === EmployeeType.TEACHER}
-                onCheckedChange={() =>
-                  setEmploymentTypeFilter(
-                    employmentTypeFilter === EmployeeType.TEACHER ? '' : EmployeeType.TEACHER,
-                  )
-                }
-              >
-                Teacher
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
                 checked={employmentTypeFilter === EmployeeType.ADMINISTRATION}
                 onCheckedChange={() =>
                   setEmploymentTypeFilter(
@@ -182,15 +172,16 @@ export function EmployeeListTable<TData, TValue>({
                 Administration
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={employmentTypeFilter === EmployeeType.STAFF}
+                checked={employmentTypeFilter === EmployeeType.TEACHER}
                 onCheckedChange={() =>
                   setEmploymentTypeFilter(
-                    employmentTypeFilter === EmployeeType.STAFF ? '' : EmployeeType.STAFF,
+                    employmentTypeFilter === EmployeeType.TEACHER ? '' : EmployeeType.TEACHER,
                   )
                 }
               >
-                Staff
+                Teacher
               </DropdownMenuCheckboxItem>
+
               <DropdownMenuCheckboxItem
                 checked={employmentTypeFilter === EmployeeType.MEDIA_IT}
                 onCheckedChange={() =>
@@ -200,6 +191,16 @@ export function EmployeeListTable<TData, TValue>({
                 }
               >
                 Media & IT
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={employmentTypeFilter === EmployeeType.STAFF}
+                onCheckedChange={() =>
+                  setEmploymentTypeFilter(
+                    employmentTypeFilter === EmployeeType.STAFF ? '' : EmployeeType.STAFF,
+                  )
+                }
+              >
+                Staff
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -65,7 +65,7 @@ export const allExpenses: Expense[] = [
   },
   {
     id: '7',
-    branch: 'Hostel',
+    branch: 'Girls',
     type: 'Salary',
     note: 'Security guard salary',
     addedBy: 'Admin User',
@@ -101,7 +101,7 @@ export const allExpenses: Expense[] = [
   },
   {
     id: '11',
-    branch: 'Hostel',
+    branch: 'Boys',
     type: 'Food',
     note: 'Special meal for religious events',
     addedBy: 'Admin User',
@@ -137,7 +137,7 @@ export const allExpenses: Expense[] = [
   },
   {
     id: '15',
-    branch: 'Hostel',
+    branch: 'Boys',
     type: 'Utility',
     note: 'Generator fuel and maintenance',
     addedBy: 'Admin User',
@@ -173,7 +173,7 @@ export const allExpenses: Expense[] = [
   },
   {
     id: '19',
-    branch: 'Hostel',
+    branch: 'Girls',
     type: 'Salary',
     note: 'Driver salary for school transport',
     addedBy: 'Admin User',

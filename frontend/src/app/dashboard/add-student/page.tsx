@@ -32,8 +32,8 @@ const studentFormSchema = z
     gender: z.string().min(1, 'Gender is required'),
     registration_date: z.string().min(1, 'Registration date is required'),
     section_name: z.string().min(1, 'Section is required'),
-    group_name: z.string().min(1, 'Group is required'),
-    class_name: z.string().min(1, 'Class is required'),
+    group_name: z.string().optional(),
+    class_name: z.string().optional(),
     roll: z.string().min(1, 'Roll number is required'),
     current_location: z.string().min(1, 'Current location is required'),
     permanent_location: z.string().min(1, 'Permanent location is required'),
@@ -100,6 +100,9 @@ const residentialCategories: ResidentialCategory[] = [
   { name: 'VIP', fee: 8000 },
 ];
 
+const NO_GROUP_OPTION_VALUE = '__no_group__';
+const NO_CLASS_OPTION_VALUE = '__no_class__';
+
 export default function AddStudentPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -127,8 +130,8 @@ export default function AddStudentPage() {
       gender: '',
       registration_date: '',
       section_name: '',
-      group_name: '',
-      class_name: '',
+      group_name: undefined,
+      class_name: undefined,
       roll: '',
       current_location: '',
       permanent_location: '',
@@ -395,9 +398,10 @@ export default function AddStudentPage() {
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="Najera">Najera</SelectItem>
+                  <SelectItem value="Hifz">Hifz</SelectItem>
                   <SelectItem value="Nurani">Nurani</SelectItem>
                   <SelectItem value="Kitab">Kitab</SelectItem>
-                  <SelectItem value="Najera">Najera</SelectItem>
                 </SelectContent>
               </Select>
               {hasAttemptedSubmit && errors.section_name && (
@@ -407,39 +411,46 @@ export default function AddStudentPage() {
 
             <div className="space-y-2">
               <Label className="text-md" htmlFor="group_name">
-                Group <span className="text-destructive">*</span>
+                Group
               </Label>
               <Select
-                value={watchedValues.group_name}
-                onValueChange={(value) => setValue('group_name', value, { shouldValidate: true })}
+                value={watchedValues.group_name ?? NO_GROUP_OPTION_VALUE}
+                onValueChange={(value) =>
+                  setValue('group_name', value === NO_GROUP_OPTION_VALUE ? undefined : value, {
+                    shouldValidate: true,
+                  })
+                }
               >
                 <SelectTrigger className="bg-muted/40 dark:bg-input/40">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value={NO_GROUP_OPTION_VALUE}>No group</SelectItem>
                   <SelectItem value="Ibtida'iyyah">Ibtida&apos;iyyah</SelectItem>
                   <SelectItem value="Thanawiyyah 'Ulyā">Thanawiyyah &apos;Ulyā</SelectItem>
                   <SelectItem value="Ālimiyyah">Ālimiyyah</SelectItem>
                   <SelectItem value="Mutawassitah">Mutawassitah</SelectItem>
                 </SelectContent>
               </Select>
-              {hasAttemptedSubmit && errors.group_name && (
-                <p className="text-sm text-destructive">{errors.group_name.message}</p>
-              )}
             </div>
 
             <div className="space-y-2">
               <Label className="text-md" htmlFor="class_name">
-                Class <span className="text-destructive">*</span>
+                Class
               </Label>
               <Select
-                value={watchedValues.class_name}
-                onValueChange={(value) => setValue('class_name', value, { shouldValidate: true })}
+                value={watchedValues.class_name ?? NO_CLASS_OPTION_VALUE}
+                onValueChange={(value) =>
+                  setValue('class_name', value === NO_CLASS_OPTION_VALUE ? undefined : value, {
+                    shouldValidate: true,
+                  })
+                }
               >
                 <SelectTrigger className="bg-muted/40 dark:bg-input/40">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value={NO_CLASS_OPTION_VALUE}>No class</SelectItem>
                   <SelectItem value="Shishu">Shishu</SelectItem>
                   <SelectItem value="One">One</SelectItem>
                   <SelectItem value="Two">Two</SelectItem>
@@ -453,9 +464,6 @@ export default function AddStudentPage() {
                   <SelectItem value="Ten">Ten</SelectItem>
                 </SelectContent>
               </Select>
-              {hasAttemptedSubmit && errors.class_name && (
-                <p className="text-sm text-destructive">{errors.class_name.message}</p>
-              )}
             </div>
 
             <div className="space-y-2">

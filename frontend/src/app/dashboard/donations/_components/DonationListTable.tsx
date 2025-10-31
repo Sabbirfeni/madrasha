@@ -31,17 +31,24 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
+import {
+  type Donation as DonationData,
+  type DonationType,
+  donationTypeOptions,
+} from '../donations';
 import { AddDonationModal } from './AddDonationModal';
 import { EditDonationModal } from './EditDonationModal';
 
-export type Donation = {
-  id: string;
-  donorName: string;
-  phoneNumber: string;
-  type: 'Membership' | 'Sadka' | 'Jakat';
-  addedBy: string;
-  date: string;
-  amount: number;
+export type Donation = DonationData;
+
+const badgeVariantByDonationType: Record<
+  DonationType,
+  React.ComponentProps<typeof Badge>['variant']
+> = {
+  Sadaqah: 'secondary',
+  Zakat: 'outline',
+  Membership: 'default',
+  Others: 'default',
 };
 
 interface DonationListTableProps<TData, TValue> {
@@ -63,9 +70,10 @@ export function DonationListTable<TData, TValue>({
 
   // Search and filter states
   const [nameSearch, setNameSearch] = React.useState<string>('');
-  const [typeFilter, setTypeFilter] = React.useState<string>('');
+  const [typeFilter, setTypeFilter] = React.useState<DonationType | ''>('');
   const [monthFilter, setMonthFilter] = React.useState<string>('');
   const [yearFilter, setYearFilter] = React.useState<string>('');
+  const [branchFilter, setBranchFilter] = React.useState<string>('');
 
   const handleEditDonation = (donation: Donation) => {
     setSelectedDonation(donation);
@@ -85,6 +93,10 @@ export function DonationListTable<TData, TValue>({
       filtered = filtered.filter((donation) => donation.type === typeFilter);
     }
 
+    if (branchFilter) {
+      filtered = filtered.filter((donation) => donation.branch === branchFilter);
+    }
+
     if (monthFilter) {
       filtered = filtered.filter((donation) => {
         const donationDate = new Date(donation.date);
@@ -101,7 +113,7 @@ export function DonationListTable<TData, TValue>({
     }
 
     return filtered as TData[];
-  }, [data, nameSearch, typeFilter, monthFilter, yearFilter]);
+  }, [data, nameSearch, typeFilter, branchFilter, monthFilter, yearFilter]);
 
   // Calculate total amount from filtered data
   const totalAmount = React.useMemo(() => {
@@ -189,6 +201,34 @@ export function DonationListTable<TData, TValue>({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="h-9 px-3 bg-transparent">
+                {branchFilter || 'Branches'}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuCheckboxItem
+                checked={!branchFilter}
+                onCheckedChange={() => setBranchFilter('')}
+              >
+                All Branches
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={branchFilter === 'Boys'}
+                onCheckedChange={() => setBranchFilter(branchFilter === 'Boys' ? '' : 'Boys')}
+              >
+                Boys
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={branchFilter === 'Girls'}
+                onCheckedChange={() => setBranchFilter(branchFilter === 'Girls' ? '' : 'Girls')}
+              >
+                Girls
+              </DropdownMenuCheckboxItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="h-9 px-3 bg-transparent">
                 {typeFilter || 'Type'}
               </Button>
             </DropdownMenuTrigger>
@@ -199,26 +239,17 @@ export function DonationListTable<TData, TValue>({
               >
                 All Types
               </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={typeFilter === 'Membership'}
-                onCheckedChange={() =>
-                  setTypeFilter(typeFilter === 'Membership' ? '' : 'Membership')
-                }
-              >
-                Membership
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={typeFilter === 'Sadka'}
-                onCheckedChange={() => setTypeFilter(typeFilter === 'Sadka' ? '' : 'Sadka')}
-              >
-                Sadka
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={typeFilter === 'Jakat'}
-                onCheckedChange={() => setTypeFilter(typeFilter === 'Jakat' ? '' : 'Jakat')}
-              >
-                Jakat
-              </DropdownMenuCheckboxItem>
+              {donationTypeOptions.map((donationType) => (
+                <DropdownMenuCheckboxItem
+                  key={donationType}
+                  checked={typeFilter === donationType}
+                  onCheckedChange={() =>
+                    setTypeFilter(typeFilter === donationType ? '' : donationType)
+                  }
+                >
+                  {donationType}
+                </DropdownMenuCheckboxItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -369,6 +400,11 @@ export const donationListTableColumns: ColumnDef<Donation>[] = [
     cell: ({ row }) => <div className="font-medium">{row.getValue('donorName')}</div>,
   },
   {
+    accessorKey: 'branch',
+    header: 'Branch',
+    cell: ({ row }) => <div className="text-sm">{row.getValue('branch')}</div>,
+  },
+  {
     accessorKey: 'phoneNumber',
     header: 'Phone',
     cell: ({ row }) => <div className="text-sm">{row.getValue('phoneNumber')}</div>,
@@ -378,8 +414,7 @@ export const donationListTableColumns: ColumnDef<Donation>[] = [
     header: 'Type',
     cell: ({ row }) => {
       const type = row.getValue('type') as string;
-      const variant =
-        type === 'Membership' ? 'default' : type === 'Sadka' ? 'secondary' : 'outline';
+      const variant = badgeVariantByDonationType[type as DonationType] ?? 'outline';
       return <Badge variant={variant}>{type}</Badge>;
     },
   },

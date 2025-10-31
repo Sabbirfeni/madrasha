@@ -46,7 +46,7 @@ function generateStudents(): Student[] {
     'Qureshi',
   ];
 
-  const sections: Student['section'][] = ['Nurani', 'Kitab', 'Najera'];
+  const sections: Student['section'][] = ['Najera', 'Hifz', 'Nurani', 'Kitab'];
   const classes: Student['class'][] = [
     'Shishu',
     'One',

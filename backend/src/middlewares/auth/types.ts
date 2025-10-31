@@ -5,7 +5,6 @@ export type AuthenticatedAdmin = {
   permissions?: {
     access_boys_section: boolean;
     access_girls_section: boolean;
-    access_residential_section: boolean;
   };
   iat?: number;
   exp?: number;

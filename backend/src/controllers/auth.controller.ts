@@ -35,7 +35,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     role,
     access_boys_section,
     access_girls_section,
-    access_residential_section,
   } = admin;
 
   const { _id: employeeId, fullname, phone_number: employeePhone } = employee;
@@ -52,7 +51,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     permissions: {
       access_boys_section,
       access_girls_section,
-      access_residential_section,
     },
   });
 
@@ -68,7 +66,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         permissions: {
           access_boys_section,
           access_girls_section,
-          access_residential_section,
         },
       },
     },

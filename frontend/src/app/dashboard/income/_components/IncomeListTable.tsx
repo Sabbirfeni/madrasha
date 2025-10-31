@@ -37,7 +37,7 @@ import { EditIncomeModal } from './EditIncomeModal';
 export type Income = {
   id: string;
   branch: 'Boys' | 'Girls';
-  type: 'Student Fee' | 'Book Sell' | 'Other';
+  type: 'Admission Fee' | 'Session Fee' | "Students' Monthly Fee" | 'Canteen' | 'Others';
   note: string;
   addedBy: string;
   date: string;
@@ -232,26 +232,23 @@ export function IncomeListTable<TData, TValue>({
               >
                 All Types
               </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={typeFilter === 'Student Fee'}
-                onCheckedChange={() =>
-                  setTypeFilter(typeFilter === 'Student Fee' ? '' : 'Student Fee')
-                }
-              >
-                Student Fee
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={typeFilter === 'Book Sell'}
-                onCheckedChange={() => setTypeFilter(typeFilter === 'Book Sell' ? '' : 'Book Sell')}
-              >
-                Book Sell
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={typeFilter === 'Other'}
-                onCheckedChange={() => setTypeFilter(typeFilter === 'Other' ? '' : 'Other')}
-              >
-                Other
-              </DropdownMenuCheckboxItem>
+              {(
+                [
+                  'Admission Fee',
+                  'Session Fee',
+                  "Students' Monthly Fee",
+                  'Canteen',
+                  'Others',
+                ] satisfies Income['type'][]
+              ).map((typeOption) => (
+                <DropdownMenuCheckboxItem
+                  key={typeOption}
+                  checked={typeFilter === typeOption}
+                  onCheckedChange={() => setTypeFilter(typeFilter === typeOption ? '' : typeOption)}
+                >
+                  {typeOption}
+                </DropdownMenuCheckboxItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -401,8 +398,15 @@ export const incomeListTableColumns: ColumnDef<Income>[] = [
     header: 'Type',
     cell: ({ row }) => {
       const type = row.getValue('type') as string;
+      const variantMap: Record<Income['type'], 'default' | 'secondary' | 'outline'> = {
+        'Admission Fee': 'default',
+        'Session Fee': 'secondary',
+        "Students' Monthly Fee": 'default',
+        Canteen: 'secondary',
+        Others: 'outline',
+      };
       const variant =
-        type === 'Student Fee' ? 'default' : type === 'Book Sell' ? 'secondary' : 'outline';
+        (variantMap as Record<string, 'default' | 'secondary' | 'outline'>)[type] || 'outline';
       return <Badge variant={variant}>{type}</Badge>;
     },
   },

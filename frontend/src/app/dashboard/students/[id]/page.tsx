@@ -30,8 +30,8 @@ type StudentDetailsFormData = {
   gender: string;
   registration_date: string;
   section_name: string;
-  group_name: string;
-  class_name: string;
+  group_name?: string;
+  class_name?: string;
   roll: string;
   current_location: string;
   permanent_location: string;
@@ -64,6 +64,9 @@ const residentialCategories: ResidentialCategory[] = [
   { name: 'Medium', fee: 5000 },
   { name: 'VIP', fee: 8000 },
 ];
+
+const NO_GROUP_OPTION_VALUE = '__no_group__';
+const NO_CLASS_OPTION_VALUE = '__no_class__';
 
 // Mock data
 const mockStudentData: StudentDetailsFormData = {
@@ -209,7 +212,8 @@ export default function StudentDetailsPage() {
           <div>
             <h1 className="text-3xl font-bold">{watchedValues.full_name}</h1>
             <p className="text-muted-foreground">
-              {watchedValues.class_name} - {watchedValues.section_name} | Roll: {watchedValues.roll}
+              {watchedValues.class_name || 'Not assigned'} - {watchedValues.section_name} | Roll:{' '}
+              {watchedValues.roll}
             </p>
           </div>
         </div>
@@ -382,9 +386,10 @@ export default function StudentDetailsPage() {
                     <SelectValue placeholder="Select section" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="Najera">Najera</SelectItem>
+                    <SelectItem value="Hifz">Hifz</SelectItem>
                     <SelectItem value="Nurani">Nurani</SelectItem>
                     <SelectItem value="Kitab">Kitab</SelectItem>
-                    <SelectItem value="Najera">Najera</SelectItem>
                   </SelectContent>
                 </Select>
               ) : (
@@ -400,13 +405,16 @@ export default function StudentDetailsPage() {
               </Label>
               {isEditing ? (
                 <Select
-                  value={watchedValues.group_name}
-                  onValueChange={(value) => setValue('group_name', value)}
+                  value={watchedValues.group_name ?? NO_GROUP_OPTION_VALUE}
+                  onValueChange={(value) =>
+                    setValue('group_name', value === NO_GROUP_OPTION_VALUE ? undefined : value)
+                  }
                 >
                   <SelectTrigger className="bg-muted/40 dark:bg-input/40">
                     <SelectValue placeholder="Select group" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value={NO_GROUP_OPTION_VALUE}>No group</SelectItem>
                     <SelectItem value="Ibtida'iyyah">Ibtida&apos;iyyah</SelectItem>
                     <SelectItem value="Thanawiyyah 'Ulyā">Thanawiyyah &apos;Ulyā</SelectItem>
                     <SelectItem value="Ālimiyyah">Ālimiyyah</SelectItem>
@@ -414,7 +422,9 @@ export default function StudentDetailsPage() {
                   </SelectContent>
                 </Select>
               ) : (
-                <div className="p-2 text-sm bg-muted/40 rounded-md">{watchedValues.group_name}</div>
+                <div className="p-2 text-sm bg-muted/40 rounded-md">
+                  {watchedValues.group_name || 'Not assigned'}
+                </div>
               )}
             </div>
 
@@ -424,13 +434,16 @@ export default function StudentDetailsPage() {
               </Label>
               {isEditing ? (
                 <Select
-                  value={watchedValues.class_name}
-                  onValueChange={(value) => setValue('class_name', value)}
+                  value={watchedValues.class_name ?? NO_CLASS_OPTION_VALUE}
+                  onValueChange={(value) =>
+                    setValue('class_name', value === NO_CLASS_OPTION_VALUE ? undefined : value)
+                  }
                 >
                   <SelectTrigger className="bg-muted/40 dark:bg-input/40">
                     <SelectValue placeholder="Select class" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value={NO_CLASS_OPTION_VALUE}>No class</SelectItem>
                     <SelectItem value="Shishu">Shishu</SelectItem>
                     <SelectItem value="One">One</SelectItem>
                     <SelectItem value="Two">Two</SelectItem>
@@ -445,7 +458,9 @@ export default function StudentDetailsPage() {
                   </SelectContent>
                 </Select>
               ) : (
-                <div className="p-2 text-sm bg-muted/40 rounded-md">{watchedValues.class_name}</div>
+                <div className="p-2 text-sm bg-muted/40 rounded-md">
+                  {watchedValues.class_name || 'Not assigned'}
+                </div>
               )}
             </div>
 

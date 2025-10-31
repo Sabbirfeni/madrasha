@@ -36,7 +36,7 @@ import { EditExpenseModal } from './EditExpenseModal';
 
 export type Expense = {
   id: string;
-  branch: 'Boys' | 'Girls' | 'Hostel';
+  branch: 'Boys' | 'Girls';
   type: 'Salary' | 'Food' | 'Utility';
   note: string;
   addedBy: string;
