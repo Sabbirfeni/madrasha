@@ -65,14 +65,16 @@ export enum IncomeType {
 
 // Expense types
 export enum ExpenseType {
-  SALARIES = "salaries",
-  UTILITIES = "utilities",
-  MAINTENANCE = "maintenance",
-  BOOKS_SUPPLIES = "books_supplies",
-  FOOD_CATERING = "food_catering",
-  TRANSPORTATION = "transportation",
-  MEDICAL = "medical",
-  OTHER = "other",
+  SALARY = 1,
+  HOSTEL = 2,
+  ELECTRICITY_BILL = 3,
+  MOBILE_INTERNET_BILL = 4,
+  OFFICE = 5,
+  STATIONERY = 6,
+  UTILITIES = 7,
+  FARE = 8,
+  MAINTENANCE = 9,
+  CONSTRUCTION = 10,
 }
 
 // Student sections

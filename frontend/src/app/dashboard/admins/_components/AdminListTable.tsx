@@ -119,12 +119,12 @@ export function AdminListTable<TData, TValue>({
                   <DropdownMenuItem onClick={() => handleEditAdmin(admin)}>
                     Edit admin
                   </DropdownMenuItem>
-                  <DropdownMenuItem
+                  {/* <DropdownMenuItem
                     className="text-destructive"
                     onClick={() => handleDeleteAdmin(admin)}
                   >
                     Delete admin
-                  </DropdownMenuItem>
+                  </DropdownMenuItem> */}
                 </DropdownMenuContent>
               </DropdownMenu>
             );

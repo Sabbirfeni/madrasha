@@ -1,11 +1,22 @@
 'use client';
 
+import { BRANCH_MAP, BRANCH_REVERSE_MAP, type BranchLabel } from '@/domain/branches/constants';
+import {
+  EXPENSE_TYPE_MAP,
+  EXPENSE_TYPE_REVERSE_MAP,
+  type ExpenseTypeLabel,
+} from '@/domain/expenses/constants';
+import { updateExpense } from '@/services/expense';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useSession } from 'next-auth/react';
 import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { z } from 'zod';
 
 import type React from 'react';
 import { useEffect, useState } from 'react';
+
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -19,23 +30,37 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-import { Expense } from '../expenses';
+import type { Expense } from './ExpenseListTable';
+
+const branchOptions: BranchLabel[] = ['Boys', 'Girls'];
+const expenseTypeOptions: ExpenseTypeLabel[] = [
+  'Salary',
+  'Hostel',
+  'Electricity Bill',
+  'Mobile & Internet Bill',
+  'Office',
+  'Stationery',
+  'Utilities',
+  'Fare',
+  'Maintenance',
+  'Construction',
+];
 
 const expenseSchema = z.object({
   branch: z
     .string()
     .min(1, 'Please select a branch')
-    .refine((val) => val && ['Boys', 'Girls'].includes(val), {
+    .refine((val) => branchOptions.includes(val as BranchLabel), {
       message: 'Please select a valid branch',
     }),
   type: z
     .string()
     .min(1, 'Please select an expense type')
-    .refine((val) => val && ['Salary', 'Food', 'Utility'].includes(val), {
+    .refine((val) => expenseTypeOptions.includes(val as ExpenseTypeLabel), {
       message: 'Please select a valid expense type',
     }),
-  note: z.string(),
-  date: z.string().min(1, 'Date is required'),
+  notes: z.string().min(1, 'Notes are required').max(255, 'Notes too long'),
+  expense_date: z.string().min(1, 'Date is required'),
   amount: z
     .number({ message: 'Amount must be a number' })
     .min(0.01, 'Amount must be greater than 0')
@@ -52,6 +77,8 @@ interface EditExpenseModalProps {
 
 export function EditExpenseModal({ open, onOpenChange, expense }: EditExpenseModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
+  const { data: session } = useSession();
 
   const {
     register,
@@ -64,19 +91,22 @@ export function EditExpenseModal({ open, onOpenChange, expense }: EditExpenseMod
     defaultValues: {
       branch: '',
       type: '',
-      note: '',
-      date: '',
+      notes: '',
+      expense_date: '',
       amount: 0,
     },
   });
 
   useEffect(() => {
     if (expense) {
+      const branchLabel = BRANCH_MAP[expense.branch as keyof typeof BRANCH_MAP];
+      const typeLabel = EXPENSE_TYPE_MAP[expense.type as keyof typeof EXPENSE_TYPE_MAP];
+
       reset({
-        branch: expense.branch,
-        type: expense.type,
-        note: expense.note,
-        date: expense.date,
+        branch: branchLabel,
+        type: typeLabel,
+        notes: expense.notes,
+        expense_date: expense.expense_date.split('T')[0],
         amount: expense.amount,
       });
     }
@@ -87,19 +117,29 @@ export function EditExpenseModal({ open, onOpenChange, expense }: EditExpenseMod
 
     setIsSubmitting(true);
     try {
-      // Here you would typically call an API to update the expense
-      console.log('Updating expense:', { id: expense.id, ...data });
+      const branchValue = BRANCH_REVERSE_MAP[data.branch as BranchLabel];
+      const typeValue = EXPENSE_TYPE_REVERSE_MAP[data.type as ExpenseTypeLabel];
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await updateExpense(
+        expense._id,
+        {
+          branch: branchValue,
+          type: typeValue,
+          amount: data.amount,
+          expense_date: data.expense_date,
+          notes: data.notes,
+        },
+        {
+          accessToken: (session as typeof session & { accessToken?: string })?.accessToken,
+        },
+      );
 
-      // Close modal
+      toast.success('Expense updated successfully');
+      router.refresh();
       onOpenChange(false);
-
-      // You could add a toast notification here
-      console.log('Expense updated successfully!');
     } catch (error) {
       console.error('Error updating expense:', error);
+      toast.error('Failed to update expense');
     } finally {
       setIsSubmitting(false);
     }
@@ -113,7 +153,7 @@ export function EditExpenseModal({ open, onOpenChange, expense }: EditExpenseMod
   if (!expense) return null;
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">Edit Expense</DialogTitle>
@@ -134,8 +174,11 @@ export function EditExpenseModal({ open, onOpenChange, expense }: EditExpenseMod
                       <SelectValue placeholder="Select branch" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Boys">Boys</SelectItem>
-                      <SelectItem value="Girls">Girls</SelectItem>
+                      {branchOptions.map((branch) => (
+                        <SelectItem key={branch} value={branch}>
+                          {branch}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 )}
@@ -155,9 +198,11 @@ export function EditExpenseModal({ open, onOpenChange, expense }: EditExpenseMod
                       <SelectValue placeholder="Select expense type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Salary">Salary</SelectItem>
-                      <SelectItem value="Food">Food</SelectItem>
-                      <SelectItem value="Utility">Utility</SelectItem>
+                      {expenseTypeOptions.map((expenseType) => (
+                        <SelectItem key={expenseType} value={expenseType}>
+                          {expenseType}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 )}
@@ -183,28 +228,30 @@ export function EditExpenseModal({ open, onOpenChange, expense }: EditExpenseMod
 
           {/* Date */}
           <div className="space-y-2">
-            <Label htmlFor="date">Date</Label>
+            <Label htmlFor="expense_date">Date</Label>
             <Input
-              id="date"
+              id="expense_date"
               type="date"
-              {...register('date')}
-              className={errors.date ? 'border-red-500' : ''}
+              {...register('expense_date')}
+              className={errors.expense_date ? 'border-red-500' : ''}
             />
-            {errors.date && <p className="text-sm text-red-500">{errors.date.message}</p>}
+            {errors.expense_date && (
+              <p className="text-sm text-red-500">{errors.expense_date.message}</p>
+            )}
           </div>
 
-          {/* Note */}
+          {/* Notes */}
           <div className="space-y-2">
-            <Label htmlFor="note">Note</Label>
+            <Label htmlFor="notes">Notes</Label>
             <textarea
-              id="note"
-              placeholder="Enter note or description"
-              {...register('note')}
+              id="notes"
+              placeholder="Enter notes or description"
+              {...register('notes')}
               className={`flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
-                errors.note ? 'border-red-500' : ''
+                errors.notes ? 'border-red-500' : ''
               }`}
             />
-            {errors.note && <p className="text-sm text-red-500">{errors.note.message}</p>}
+            {errors.notes && <p className="text-sm text-red-500">{errors.notes.message}</p>}
           </div>
 
           {/* Submit Button */}

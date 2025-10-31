@@ -1,6 +1,13 @@
 'use client';
 
+import { BRANCH_REVERSE_MAP, type BranchLabel } from '@/domain/branches/constants';
+import {
+  EXPENSE_TYPE_MAP,
+  EXPENSE_TYPE_REVERSE_MAP,
+  type ExpenseTypeLabel,
+} from '@/domain/expenses/constants';
 import { formatDate, getCurrentYear } from '@/lib/date-utils';
+import type { Expense as ApiExpense } from '@/services/expense/types';
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -31,9 +38,23 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-import type { Expense } from '../expenses';
 import { AddExpenseModal } from './AddExpenseModal';
 import { EditExpenseModal } from './EditExpenseModal';
+
+export type Expense = ApiExpense;
+
+const expenseTypeOptions: ExpenseTypeLabel[] = [
+  'Salary',
+  'Hostel',
+  'Electricity Bill',
+  'Mobile & Internet Bill',
+  'Office',
+  'Stationery',
+  'Utilities',
+  'Fare',
+  'Maintenance',
+  'Construction',
+];
 
 type ExpenseListTableProps = {
   columns: ColumnDef<Expense, unknown>[];
@@ -50,8 +71,8 @@ export function ExpenseListTable({ columns, data, title = 'Expenses' }: ExpenseL
 
   // Search and filter states
   const [noteSearch, setNoteSearch] = React.useState<string>('');
-  const [branchFilter, setBranchFilter] = React.useState<string>('');
-  const [typeFilter, setTypeFilter] = React.useState<string>('');
+  const [branchFilter, setBranchFilter] = React.useState<BranchLabel | ''>('');
+  const [typeFilter, setTypeFilter] = React.useState<ExpenseTypeLabel | ''>('');
   const [monthFilter, setMonthFilter] = React.useState<string>('');
   const [yearFilter, setYearFilter] = React.useState<string>('');
 
@@ -61,25 +82,27 @@ export function ExpenseListTable({ columns, data, title = 'Expenses' }: ExpenseL
   };
 
   const filteredData = React.useMemo(() => {
-    let filtered = data;
+    let filtered = data as Expense[];
 
     if (noteSearch) {
       filtered = filtered.filter((expense) =>
-        expense.note.toLowerCase().includes(noteSearch.toLowerCase()),
+        expense.notes.toLowerCase().includes(noteSearch.toLowerCase()),
       );
     }
 
     if (branchFilter) {
-      filtered = filtered.filter((expense) => expense.branch === branchFilter);
+      const branchValue = BRANCH_REVERSE_MAP[branchFilter as keyof typeof BRANCH_REVERSE_MAP];
+      filtered = filtered.filter((expense) => expense.branch === branchValue);
     }
 
     if (typeFilter) {
-      filtered = filtered.filter((expense) => expense.type === typeFilter);
+      const typeValue = EXPENSE_TYPE_REVERSE_MAP[typeFilter];
+      filtered = filtered.filter((expense) => expense.type === typeValue);
     }
 
     if (monthFilter) {
       filtered = filtered.filter((expense) => {
-        const expenseDate = new Date(expense.date);
+        const expenseDate = new Date(expense.expense_date);
         const expenseMonth = expenseDate.getMonth() + 1; // getMonth() returns 0-11
         return expenseMonth === Number.parseInt(monthFilter);
       });
@@ -87,12 +110,12 @@ export function ExpenseListTable({ columns, data, title = 'Expenses' }: ExpenseL
 
     if (yearFilter) {
       filtered = filtered.filter((expense) => {
-        const expenseDate = new Date(expense.date);
+        const expenseDate = new Date(expense.expense_date);
         return expenseDate.getFullYear() === Number.parseInt(yearFilter);
       });
     }
 
-    return filtered;
+    return filtered as typeof data;
   }, [data, noteSearch, branchFilter, typeFilter, monthFilter, yearFilter]);
 
   // Calculate total amount from filtered data
@@ -160,11 +183,8 @@ export function ExpenseListTable({ columns, data, title = 'Expenses' }: ExpenseL
   const currentYear = getCurrentYear();
   const yearOptions = Array.from({ length: 6 }, (_, i) => currentYear - i);
 
-  // Get unique branches from data
-  const branchOptions = React.useMemo(() => {
-    const branches = Array.from(new Set((data as Expense[]).map((expense) => expense.branch)));
-    return branches.sort();
-  }, [data]);
+  // Get branch options from BRANCH_MAP
+  const branchOptions: BranchLabel[] = ['Boys', 'Girls'];
 
   return (
     <div className="w-full space-y-4">
@@ -221,24 +241,17 @@ export function ExpenseListTable({ columns, data, title = 'Expenses' }: ExpenseL
               >
                 All Types
               </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={typeFilter === 'Salary'}
-                onCheckedChange={() => setTypeFilter(typeFilter === 'Salary' ? '' : 'Salary')}
-              >
-                Salary
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={typeFilter === 'Food'}
-                onCheckedChange={() => setTypeFilter(typeFilter === 'Food' ? '' : 'Food')}
-              >
-                Food
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={typeFilter === 'Utility'}
-                onCheckedChange={() => setTypeFilter(typeFilter === 'Utility' ? '' : 'Utility')}
-              >
-                Utility
-              </DropdownMenuCheckboxItem>
+              {expenseTypeOptions.map((expenseType) => (
+                <DropdownMenuCheckboxItem
+                  key={expenseType}
+                  checked={typeFilter === expenseType}
+                  onCheckedChange={() =>
+                    setTypeFilter(typeFilter === expenseType ? '' : expenseType)
+                  }
+                >
+                  {expenseType}
+                </DropdownMenuCheckboxItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -387,33 +400,38 @@ export const expenseListTableColumns: ColumnDef<Expense>[] = [
     accessorKey: 'type',
     header: 'Type',
     cell: ({ row }) => {
-      const type = row.getValue('type') as string;
-      const variant = type === 'Salary' ? 'default' : type === 'Food' ? 'secondary' : 'outline';
-      return <Badge variant={variant}>{type}</Badge>;
+      const typeValue = row.getValue('type') as number;
+      const typeLabel = EXPENSE_TYPE_MAP[typeValue as keyof typeof EXPENSE_TYPE_MAP];
+      const variant =
+        typeLabel === 'Salary' ? 'default' : typeLabel === 'Hostel' ? 'secondary' : 'outline';
+      return <Badge variant={variant}>{typeLabel}</Badge>;
     },
   },
   {
-    accessorKey: 'note',
-    header: 'Note',
+    accessorKey: 'notes',
+    header: 'Notes',
     cell: ({ row }) => {
-      const note = row.getValue('note') as string;
+      const notes = row.getValue('notes') as string;
       return (
-        <div className="max-w-xs truncate" title={note}>
-          {note}
+        <div className="max-w-xs truncate" title={notes}>
+          {notes}
         </div>
       );
     },
   },
   {
-    accessorKey: 'addedBy',
+    accessorKey: 'admin_id',
     header: 'Added By',
-    cell: ({ row }) => <div className="text-sm">{row.getValue('addedBy')}</div>,
+    cell: ({ row }) => {
+      const adminData = row.getValue('admin_id') as Expense['admin_id'];
+      return <div className="text-sm">{adminData?.employee_id?.fullname || 'N/A'}</div>;
+    },
   },
   {
-    accessorKey: 'date',
+    accessorKey: 'expense_date',
     header: 'Date',
     cell: ({ row }) => {
-      const date = row.getValue('date') as string;
+      const date = row.getValue('expense_date') as string;
       return <div className="text-sm">{formatDate(date)}</div>;
     },
   },
