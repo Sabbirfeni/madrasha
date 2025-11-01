@@ -80,10 +80,10 @@ export function AdminListTable<TData, TValue>({
     setIsEditModalOpen(true);
   };
 
-  const handleDeleteAdmin = (admin: Admin) => {
-    setSelectedAdmin(admin);
-    setIsDeleteModalOpen(true);
-  };
+  // const handleDeleteAdmin = (admin: Admin) => {
+  //   setSelectedAdmin(admin);
+  //   setIsDeleteModalOpen(true);
+  // };
 
   const handleDeleteConfirm = async (admin: Admin) => {
     try {

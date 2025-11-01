@@ -52,12 +52,12 @@ export function SiteHeader() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuCheckboxItem
+                {/* <DropdownMenuCheckboxItem
                   checked={selectedYear === 'all'}
                   onCheckedChange={() => handleYearChange('all')}
                 >
                   All Years
-                </DropdownMenuCheckboxItem>
+                </DropdownMenuCheckboxItem> */}
                 {yearOptions.map((year) => (
                   <DropdownMenuCheckboxItem
                     key={year}

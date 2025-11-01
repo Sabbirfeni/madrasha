@@ -1,4 +1,5 @@
-import { TrendingDown, TrendingUp } from 'lucide-react';
+import { getOverviewStats } from '@/services/analytics';
+import { TrendingUp } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import {
@@ -10,25 +11,47 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 
-export function SectionCards() {
+type SectionCardsProps = {
+  accessToken?: string;
+};
+
+export async function SectionCards({ accessToken }: SectionCardsProps) {
+  const stats = await getOverviewStats({ accessToken });
+
+  if (!stats) {
+    return null;
+  }
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-BD', {
+      style: 'decimal',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const renderPercentageBadge = () => {
+    return (
+      <Badge variant="outline">
+        <TrendingUp />
+        +0%
+      </Badge>
+    );
+  };
+
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
       <Card className="@container/card">
         <CardHeader>
           <CardDescription>Total Income</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            ৳ 1,250
+            ৳ {formatCurrency(stats.totalIncome)}
           </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <TrendingUp />
-              +12.5%
-            </Badge>
-          </CardAction>
+          <CardAction>{renderPercentageBadge()}</CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Total income until this month <TrendingUp className="size-4" />
+            Total income for this year <TrendingUp className="size-4" />
           </div>
           <div className="text-muted-foreground">Realtime income calculation</div>
         </CardFooter>
@@ -37,18 +60,13 @@ export function SectionCards() {
         <CardHeader>
           <CardDescription>Total Donations</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            ৳ 1,234
+            ৳ {formatCurrency(stats.totalDonations)}
           </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <TrendingDown />
-              -20%
-            </Badge>
-          </CardAction>
+          <CardAction>{renderPercentageBadge()}</CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Total donations until this month <TrendingUp className="size-4" />
+            Total donations for this year <TrendingUp className="size-4" />
           </div>
           <div className="text-muted-foreground">Realtime donations calculation</div>
         </CardFooter>
@@ -57,18 +75,13 @@ export function SectionCards() {
         <CardHeader>
           <CardDescription>Total Expense</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            ৳ 45,678
+            ৳ {formatCurrency(stats.totalExpense)}
           </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <TrendingUp />
-              +12.5%
-            </Badge>
-          </CardAction>
+          <CardAction>{renderPercentageBadge()}</CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Total expense until this month <TrendingUp className="size-4" />
+            Total expense for this year <TrendingUp className="size-4" />
           </div>
           <div className="text-muted-foreground">Realtime expense calculation</div>
         </CardFooter>
@@ -77,18 +90,13 @@ export function SectionCards() {
         <CardHeader>
           <CardDescription>Current Balance</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            ৳ 4,500
+            ৳ {formatCurrency(stats.currentBalance)}
           </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <TrendingUp />
-              +4.5%
-            </Badge>
-          </CardAction>
+          <CardAction>{renderPercentageBadge()}</CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Total Balance until this month <TrendingUp className="size-4" />
+            Total balance for this year <TrendingUp className="size-4" />
           </div>
           <div className="text-muted-foreground">Realtime total balance calculation</div>
         </CardFooter>

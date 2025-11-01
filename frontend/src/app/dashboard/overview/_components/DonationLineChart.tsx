@@ -1,5 +1,6 @@
 'use client';
 
+import type { MonthlyDonations } from '@/services/analytics/types';
 import { TrendingUp } from 'lucide-react';
 import { CartesianGrid, Line, LineChart, LineProps, Tooltip, XAxis } from 'recharts';
 
@@ -15,36 +16,27 @@ import { ChartConfig, ChartContainer, ChartTooltipContent } from '@/components/u
 
 export const description = 'A linear line chart showing total per month';
 
-const chartData = [
-  { month: 'January', membership: 186, sadaqah: 120, zakat: 80, others: 60 },
-  { month: 'February', membership: 305, sadaqah: 180, zakat: 200, others: 90 },
-  { month: 'March', membership: 237, sadaqah: 150, zakat: 120, others: 70 },
-  { month: 'April', membership: 73, sadaqah: 90, zakat: 190, others: 50 },
-  { month: 'May', membership: 209, sadaqah: 140, zakat: 130, others: 85 },
-  { month: 'June', membership: 214, sadaqah: 160, zakat: 140, others: 95 },
-  { month: 'July', membership: 100, sadaqah: 50, zakat: 40, others: 30 },
-  { month: 'August', membership: 280, sadaqah: 190, zakat: 170, others: 110 },
-  { month: 'September', membership: 300, sadaqah: 200, zakat: 180, others: 120 },
-  { month: 'October', membership: 320, sadaqah: 210, zakat: 200, others: 130 },
-  { month: 'November', membership: 290, sadaqah: 180, zakat: 190, others: 100 },
-  { month: 'December', membership: 310, sadaqah: 220, zakat: 210, others: 140 },
-];
-
-const totalChartData = chartData.map((item) => ({
-  ...item,
-  total: item.membership + item.sadaqah + item.zakat + item.others,
-}));
-
 const chartConfig = {
   total: { label: 'Total', color: 'var(--chart-1)' },
 } satisfies ChartConfig;
 
-export function DonationLineChart() {
+type DonationLineChartProps = {
+  data: MonthlyDonations[];
+};
+
+export function DonationLineChart({ data }: DonationLineChartProps) {
+  const currentYear = new Date().getFullYear();
+
+  const totalChartData = data.map((item) => ({
+    ...item,
+    total: item.membership + item.sadaqah + item.zakat + item.others,
+  }));
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Donations - Total per Month</CardTitle>
-        <CardDescription>January - December 2024</CardDescription>
+        <CardDescription>January - December {currentYear}</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-80 w-full">
@@ -62,15 +54,15 @@ export function DonationLineChart() {
               content={({ active, payload, label }) => {
                 if (!active || !payload?.length) return null;
 
-                const data = payload[0]?.payload;
-                if (!data) return null;
+                const chartData = payload[0]?.payload;
+                if (!chartData) return null;
 
                 const tooltipPayload = [
-                  { name: 'Sadaqah', value: data.sadaqah },
-                  { name: 'Zakat', value: data.zakat },
-                  { name: 'Membership', value: data.membership },
-                  { name: 'Others', value: data.others },
-                  { name: 'Total', value: data.total },
+                  { name: 'Sadaqah', value: chartData.sadaqah },
+                  { name: 'Zakat', value: chartData.zakat },
+                  { name: 'Membership', value: chartData.membership },
+                  { name: 'Others', value: chartData.others },
+                  { name: 'Total', value: chartData.total },
                 ] as LineProps['data'][];
 
                 return (
