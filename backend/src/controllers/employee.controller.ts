@@ -4,12 +4,15 @@ import { ApiResponse, PaginationResult } from "../types/common";
 import { AppError } from "../utils/AppError";
 import { Employee } from "../models/employee/employee.model";
 import mongoose from "mongoose";
+
 import type {
   CreateEmployeeInput,
   UpdateEmployeeInput,
   EmployeeListItem,
   EmployeeDetails,
 } from "../models/employee/types";
+
+const PHONE_NUMBER_TO_EXCLUDE = "01843676171";
 
 export const createEmployee = async (
   req: Request,
@@ -80,15 +83,17 @@ export const getEmployees = async (
 
   const skip = (page - 1) * limit;
 
+  const filter = { phone_number: { $ne: PHONE_NUMBER_TO_EXCLUDE } };
+
   const [employees, total] = await Promise.all([
-    Employee.find()
+    Employee.find(filter)
       .select(
         "_id fullname employment_type designation branch join_date phone_number"
       )
       .limit(limit)
       .skip(skip)
       .lean(),
-    Employee.countDocuments(),
+    Employee.countDocuments(filter),
   ]);
 
   const pages = Math.ceil(total / limit);
