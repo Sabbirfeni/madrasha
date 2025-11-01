@@ -7,6 +7,7 @@ import studentRoutes from "./student.routes";
 import incomeRoutes from "./income.routes";
 import donationRoutes from "./donation.routes";
 import expenseRoutes from "./expense.routes";
+import analyticsRoutes from "./analytics.routes";
 import { authenticate } from "../middlewares/auth/authenticate";
 import { asyncHandler } from "../utils/asyncHandler";
 
@@ -25,5 +26,6 @@ router.use("/students", studentRoutes);
 router.use("/incomes", incomeRoutes);
 router.use("/donations", donationRoutes);
 router.use("/expenses", expenseRoutes);
+router.use("/analytics", analyticsRoutes);
 
 export default router;

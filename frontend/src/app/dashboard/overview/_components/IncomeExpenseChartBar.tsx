@@ -1,5 +1,6 @@
 'use client';
 
+import type { MonthlyIncomeExpense } from '@/services/analytics/types';
 import { TrendingUp } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 
@@ -20,21 +21,6 @@ import {
 
 export const description = 'A multiple bar chart';
 
-const chartData = [
-  { month: 'January', income: 186, expense: 80 },
-  { month: 'February', income: 205, expense: 200 },
-  { month: 'March', income: 237, expense: 120 },
-  { month: 'April', income: 73, expense: 190 },
-  { month: 'May', income: 209, expense: 130 },
-  { month: 'June', income: 214, expense: 140 },
-  { month: 'July', income: 250, expense: 150 },
-  { month: 'August', income: 100, expense: 170 },
-  { month: 'September', income: 230, expense: 180 },
-  { month: 'October', income: 220, expense: 200 },
-  { month: 'November', income: 250, expense: 190 },
-  { month: 'December', income: 310, expense: 210 },
-];
-
 const chartConfig = {
   income: {
     label: 'Income',
@@ -46,16 +32,22 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function IncomeExpenseChartBar() {
+type IncomeExpenseChartBarProps = {
+  data: MonthlyIncomeExpense[];
+};
+
+export function IncomeExpenseChartBar({ data }: IncomeExpenseChartBarProps) {
+  const currentYear = new Date().getFullYear();
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Income & Expense - Comparison per Month</CardTitle>
-        <CardDescription>January - December 2024</CardDescription>
+        <CardDescription>January - December {currentYear}</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-80 w-full">
-          <BarChart accessibilityLayer data={chartData}>
+          <BarChart accessibilityLayer data={data}>
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="month"
